@@ -70,7 +70,7 @@ $$
 
 ### Amplitude Embedding
 
-Data is encoded in the amplitud of quantum states. A normalized classifcal $N$ dimensional datapoint $x$ is represented byt the amplitudes of a $n$-qubit quantum state $\ket{\phi_x}$ as: 
+Data is encoded in the amplitude of quantum states. A normalized classifcal $N$ dimensional datapoint $x$ is represented byt the amplitudes of a $n$-qubit quantum state $\ket{\phi_x}$ as: 
 
 $$
 \ket{\phi_x}=\sum \limits_{i=1}^N x_i \ket{i}
