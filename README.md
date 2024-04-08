@@ -7,3 +7,23 @@ Simply speaking, the idea is to see if we can develop strategy to execute task u
 3. repeat 2. with a smaller part of the model
 4. look at what happen in the classification results of the three classificator
 
+# PennyLane
+
+## Device
+This function is used to load a particular quantum device, which can then be used to construct QNodes. In PennyLane a device represents the environment where quantum circuit are executed, that can be a simulator or a real quantum processor.
+- **'default.qubit'** is a simple state simulator. A state simulator is used to calculate the time evolution of a quantum system described by a pure state.
+
+- **'default.mixed'** is a mixed-state simulator. A mixed states simulator consider in the evolution the presence of mixed states, results of partial measurements or of the initial uncertainty on the system states ensemble.
+
+  ## qml.qnode
+
+  qnode is used to represent a quantum node in the hybrid computational graph. It contains a quantum function (quantum circuit function), corresponding to a variational circuit and the computational device where it is executed. It corresponds to construct a *QuantumTape* instance representing the circuit.
+The parameter *interface* is used for the classical backpropagation and it is possible to use torch, tf, jax, autograd etc.
+Usually it is used as decorator such as
+
+```python
+@qml.qnode(dev, interface="torch")
+```
+
+  
+
