@@ -70,7 +70,7 @@ $$
 
 ### Amplitude Embedding
 
-Data is encoded in the amplitude of quantum states. A normalized classifcal $N$ dimensional datapoint $x$ is represented byt the amplitudes of a $n$-qubit quantum state $\ket{\phi_x}$ as: 
+Data is encoded in the amplitude of quantum states. A normalized classifcal $N$ dimensional datapoint $x$ is represented by the amplitudes of a $n$-qubit quantum state $\ket{\phi_x}$ as: 
 
 $$
 \ket{\phi_x}=\sum \limits_{i=1}^N x_i \ket{i}
@@ -92,6 +92,27 @@ $$
 where $\alpha_i$ are the elements of the amplitude vector $\alpha$ and $\ket{i}$ the computational basis state. 
 
 The number of amplitudes to be encoded is $N \times M$, a system of $n$ qubits provides $2^n$ amplitudes, so amplitude embedding requires $n \geq \log_2 (NM)$ qubits.
+
+## Quantum Operators
+
+### AmplitudeDamping
+
+AmplitudeDamping is a single qubit opeator that can be used to model interaction with the environment, leading to changes in the state populations of a qubit. This is the phenomenon behind scattering, dissipation, attenuation and spontaneous emission. This can be expressed with the following Kraus matrices where $\gamma \in [0,1]$ is the amplitude damping probability: 
+
+```math
+K_0 = 
+\begin{pmatrix}
+1 & 0 \\
+0 & \sqrt{1-\gamma}
+\end{pmatrix}
+\\
+K_1 = 
+\begin{pmatrix}
+0 & \sqrt{\gamma} \\
+0 & 0
+\end{pmatrix}
+```
+
 
   
 
