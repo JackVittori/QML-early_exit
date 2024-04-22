@@ -94,6 +94,33 @@ where $\alpha_i$ are the elements of the amplitude vector $\alpha$ and $\ket{i}$
 The number of amplitudes to be encoded is $N \times M$, a system of $n$ qubits provides $2^n$ amplitudes, so amplitude embedding requires $n \geq \log_2 (NM)$ qubits.
 
 ## Quantum Operators
+Quantum states are usually represented by kets $\ket{\psi}$. The vector representation of a single qubit is: 
+
+```math
+\ket{\psi} = \alpha \ket{0} + \beta \ket{1} \rightarrow \begin{pmatrix}
+\alpha \\
+\beta
+\end{pmatrix}
+```
+
+The computational basis vector representation is $` \ket{0} = \begin{pmatrix}
+1 \\
+0
+\end{pmatrix}, \ket{1} = \begin{pmatrix}
+0 \\
+1
+\end{pmatrix}`$. Quantum gates, acting on $n$ qubits, are represented by unitary matrix $2^n \times 2^n$. The set of all gates with the group operation of matrix multiplication is the unitary group $U(2^n)$.
+
+### RZ
+
+It represents a single qubit Z rotation: 
+```math
+R_z(\phi) = e^{- i \phi \sigma_z /2} = 
+\begin{pmatrix}
+e^{- i \phi /2} & 0 \\
+0 & e^{ i \phi /2}
+\end{pmatrix}
+```
 
 ### AmplitudeDamping
 
