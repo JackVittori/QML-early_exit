@@ -111,6 +111,30 @@ The computational basis vector representation is $` \ket{0} = \begin{pmatrix}
 1
 \end{pmatrix}`$. Quantum gates, acting on $n$ qubits, are represented by unitary matrix $2^n \times 2^n$. The set of all gates with the group operation of matrix multiplication is the unitary group $U(2^n)$.
 
+### RX
+
+It represents a single qubit X rotation: 
+
+```math
+R_x(\phi) = e^{- i \phi \sigma_x /2} = 
+\begin{pmatrix}
+\cos(\phi /2) & -i \sin (\phi /2)  \\
+-i \sin (\phi /2) & \cos (\phi /2)
+\end{pmatrix}
+```
+
+### RY
+
+It represents a single qubit Y rotation: 
+
+```math
+R_y(\phi) = e^{- i \phi \sigma_y /2} = 
+\begin{pmatrix}
+\cos(\phi /2) & - \sin (\phi /2)  \\
+\sin (\phi /2) & \cos (\phi /2)
+\end{pmatrix}
+```
+
 ### RZ
 
 It represents a single qubit Z rotation: 
