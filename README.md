@@ -119,7 +119,8 @@ The *root mean squared error* of an observable $`\hat{H}`$ in a state $`\ket{\ps
 
 That is null only if $`\ket{\psi}`$ is an eigenstate of $`\hat{H}`$.
 *Side note: This definition can be used to enunciate the Indetermination Principle of Heisenberg that states that given two (limited) hermitian operators $`\hat{A}, \hat{B}: E_N \rightarrow E_N`$, $`\forall \ket{\psi} \in E_N`$ it holds $`\Delta A_{\psi}\Delta B_{\psi} \geq \frac{1}{2} |\left \langle [ \hat{A},\hat{B}] \right \rangle_{\psi}|`$.*
-## Qubit
+
+# Qubit
 A qubit is a quantum system of dimension two and is usually represented using $\ket{\psi}$. To identify a qubit we can use the so called *computational basis* $` \{ \ket{0}, \ket{1} \} `$ living in the Hilbert space $\mathcal{H}, dim(\mathcal{H}) = 2$
 The vector representation of a single qubit is: 
 
@@ -140,8 +141,43 @@ The computational basis vector representation is $` \ket{0} = \begin{pmatrix}
 
 Quantum gates, acting on $n$ qubits, are represented by unitary matrix $2^n \times 2^n$. The set of all gates with the group operation of matrix multiplication is the unitary group $U(2^n)$.
 
+## RX
 
-### Quantum embedding
+It represents a single qubit X rotation: 
+
+```math
+R_x(\phi) = e^{- i \phi \sigma_x /2} = 
+\begin{pmatrix}
+\cos(\phi /2) & -i \sin (\phi /2)  \\
+-i \sin (\phi /2) & \cos (\phi /2)
+\end{pmatrix}
+```
+
+## RY
+
+It represents a single qubit Y rotation: 
+
+```math
+R_y(\phi) = e^{- i \phi \sigma_y /2} = 
+\begin{pmatrix}
+\cos(\phi /2) & - \sin (\phi /2)  \\
+\sin (\phi /2) & \cos (\phi /2)
+\end{pmatrix}
+```
+
+## RZ
+
+It represents a single qubit Z rotation: 
+```math
+R_z(\phi) = e^{- i \phi \sigma_z /2} = 
+\begin{pmatrix}
+e^{- i \phi /2} & 0 \\
+0 & e^{ i \phi /2}
+\end{pmatrix}
+```
+## CNOT
+
+## Quantum embedding
 
 A quantum embedding represents classical data as quantum states in a Hilbert space via a quantum feature map.
 
@@ -226,43 +262,6 @@ Usually it is used as decorator such as
 ### QubitStateVector
 
 QubitStateVector is involved prepares the subsystem given the ket vector (state) in the computational basis. The *ket vector* is a `array[complex]` of size $2\cdot \text{len}(\text{wires})$.
-
-
-### RX
-
-It represents a single qubit X rotation: 
-
-```math
-R_x(\phi) = e^{- i \phi \sigma_x /2} = 
-\begin{pmatrix}
-\cos(\phi /2) & -i \sin (\phi /2)  \\
--i \sin (\phi /2) & \cos (\phi /2)
-\end{pmatrix}
-```
-
-### RY
-
-It represents a single qubit Y rotation: 
-
-```math
-R_y(\phi) = e^{- i \phi \sigma_y /2} = 
-\begin{pmatrix}
-\cos(\phi /2) & - \sin (\phi /2)  \\
-\sin (\phi /2) & \cos (\phi /2)
-\end{pmatrix}
-```
-
-### RZ
-
-It represents a single qubit Z rotation: 
-```math
-R_z(\phi) = e^{- i \phi \sigma_z /2} = 
-\begin{pmatrix}
-e^{- i \phi /2} & 0 \\
-0 & e^{ i \phi /2}
-\end{pmatrix}
-```
-### CNOT
 
 ### AmplitudeDamping
 
