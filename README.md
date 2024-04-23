@@ -7,32 +7,58 @@ Simply speaking, the idea is to see if we can develop strategy to execute task u
 3. repeat 2. with a smaller part of the model
 4. look at what happen in the classification results of the three classificator
 
-# PennyLane
+# Pre-requisites
 
-## Wires 
-PennyLane uses the term *wire* to refer to a quantum subsystem.
+A **vector space** E is a non empty set in which are defined two operations: 
+- a map $E \times E \rightarrow E$ called *sum* that associates a couple of elements of E to a third element in E;
+- a map $\mathbb{C} \times E \rightarrow E$ called *scalar multiplication* that associates to a couple composed by a complex number and an element of E an element of E.
 
-## Device
-This function is used to load a particular quantum device, which can then be used to construct QNodes. In PennyLane a device represents the environment where quantum circuit are executed, that can be a simulator or a real quantum processor.
-- **'default.qubit'** is a simple state simulator. A state simulator is used to calculate the time evolution of a quantum system described by a pure state.
+In addition, being E a vector space it holds: 
+- commutative property of sum;
+- associative property of sum;
+- associative property of scalar multiplication;
+- distributive property, for scalars, of scalar multiplication;
+- distributive property, for vectors, of scalar multiplication;
+- existence of a scalar neutral element in scalar multiplication;
+- existence of a vector neutral element in sum.
 
-- **'default.mixed'** is a mixed-state simulator. A mixed states simulator consider in the evolution the presence of mixed states, results of partial measurements or of the initial uncertainty on the system states ensemble.
+Sum is an internal operation in the vectorial space, given that all the partecipating elements are in the same vectorial space, while the scalar multiplication is external because the scalar element is not an element of E but of a set $S \subset \mathbb{C}$. Then E is a vector space on field S, but in the particular cases where $S = \mathbb{C}$ or $S = \mathbb{R}$, E is called a complex or real vector space.
 
-## qml.qnode
+Bra-Ket notation, introduced by Dirac in 1939 to describe quantum states, can be used also for abstract mathematical objects, such as vectors of the vector space E. The word *bracket* means "parenthesis". Denoting by *ket* $` \ket{a} `$ an element of E, *bra* $` \bra{b} `$ denotes an element belonging to the dual space of E. 
 
-  *qnode* is an object used to represent a quantum node in the hybrid computational graph. It contains a quantum function (quantum circuit function), corresponding to a variational circuit and the computational device where it is executed. It corresponds to construct a *QuantumTape* instance representing the circuit.
-The parameter *interface* is used for the classical backpropagation and it is possible to use torch, tf, jax, autograd etc.
-Usually it is used as decorator such as
+**Scalar product** or **inner product** is an operation that associates an ordered couple of elements of E an element of scalar field S on which the vector space E is defined: 
 
-```python
-@qml.qnode(dev, interface="torch")
+```math
+\braket{\cdot | \cdot}\, : \, E \times E \rightarrow S
 ```
 
-## State Preparation
+$` \forall \ket{a},\ket{b},\ket{c} \in E, \, \forall \alpha, \beta \in S`$: 
+- $` \braket{a|b} = \braket{b|a}^*`$: commutative property does not hold;
+- $` \bra{c} (\alpha \ket{a} + \beta \ket{b}) = \alpha \braket{c|a} + \beta \braket{c|b}`$: it is linear wrt ket vector;
+- $` \braket{a|a} \geq 0, \braket{a|a} \iff \ket{a} = \ket{0}`$
+- if $\braket{a|b} = \braket{b|a} = 0$, they are orthogonal. 
+## Qubit representation
 
-### QubitStateVector
+For a quantum system of dimension 2, to identify a qubit we can use computational basis $` \{ \ket{0}, \ket{1} \} `$
 
-QubitStateVector is involved prepares the subsystem given the ket vector (state) in the computational basis. The *ket vector* is a `array[complex]` of size $2\cdot \text{len}(\text{wires})$.
+## Quantum Operators
+Quantum states are usually represented by kets $\ket{\psi}$. The vector representation of a single qubit is: 
+
+```math
+\ket{\psi} = \alpha \ket{0} + \beta \ket{1} \rightarrow \begin{pmatrix}
+\alpha \\
+\beta
+\end{pmatrix}
+```
+
+The computational basis vector representation is $` \ket{0} = \begin{pmatrix}
+1 \\
+0
+\end{pmatrix}, \ket{1} = \begin{pmatrix}
+0 \\
+1
+\end{pmatrix}`$. Quantum gates, acting on $n$ qubits, are represented by unitary matrix $2^n \times 2^n$. The set of all gates with the group operation of matrix multiplication is the unitary group $U(2^n)$.
+
 
 ### Quantum embedding
 
@@ -93,23 +119,33 @@ where $\alpha_i$ are the elements of the amplitude vector $\alpha$ and $\ket{i}$
 
 The number of amplitudes to be encoded is $N \times M$, a system of $n$ qubits provides $2^n$ amplitudes, so amplitude embedding requires $n \geq \log_2 (NM)$ qubits.
 
-## Quantum Operators
-Quantum states are usually represented by kets $\ket{\psi}$. The vector representation of a single qubit is: 
+# PennyLane
 
-```math
-\ket{\psi} = \alpha \ket{0} + \beta \ket{1} \rightarrow \begin{pmatrix}
-\alpha \\
-\beta
-\end{pmatrix}
+## Wires 
+PennyLane uses the term *wire* to refer to a quantum subsystem.
+
+## Device
+This function is used to load a particular quantum device, which can then be used to construct QNodes. In PennyLane a device represents the environment where quantum circuit are executed, that can be a simulator or a real quantum processor.
+- **'default.qubit'** is a simple state simulator. A state simulator is used to calculate the time evolution of a quantum system described by a pure state.
+
+- **'default.mixed'** is a mixed-state simulator. A mixed states simulator consider in the evolution the presence of mixed states, results of partial measurements or of the initial uncertainty on the system states ensemble.
+
+## qml.qnode
+
+  *qnode* is an object used to represent a quantum node in the hybrid computational graph. It contains a quantum function (quantum circuit function), corresponding to a variational circuit and the computational device where it is executed. It corresponds to construct a *QuantumTape* instance representing the circuit.
+The parameter *interface* is used for the classical backpropagation and it is possible to use torch, tf, jax, autograd etc.
+Usually it is used as decorator such as
+
+```python
+@qml.qnode(dev, interface="torch")
 ```
 
-The computational basis vector representation is $` \ket{0} = \begin{pmatrix}
-1 \\
-0
-\end{pmatrix}, \ket{1} = \begin{pmatrix}
-0 \\
-1
-\end{pmatrix}`$. Quantum gates, acting on $n$ qubits, are represented by unitary matrix $2^n \times 2^n$. The set of all gates with the group operation of matrix multiplication is the unitary group $U(2^n)$.
+## State Preparation
+
+### QubitStateVector
+
+QubitStateVector is involved prepares the subsystem given the ket vector (state) in the computational basis. The *ket vector* is a `array[complex]` of size $2\cdot \text{len}(\text{wires})$.
+
 
 ### RX
 
@@ -145,6 +181,7 @@ e^{- i \phi /2} & 0 \\
 0 & e^{ i \phi /2}
 \end{pmatrix}
 ```
+### CNOT
 
 ### AmplitudeDamping
 
