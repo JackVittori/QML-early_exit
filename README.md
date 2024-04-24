@@ -251,36 +251,36 @@ And between pure and pure:
 ```math
 F(\ket{\phi}, \ket{\psi}) = |\braket{\phi|\psi}|^2
 ```
-## Qubit gates
+## Evolution of closed systems
+Evolution can be described by a unitary operator, preserving scalar product. 
 Quantum gates, acting on $n$ qubits, are represented by unitary matrix $2^n \times 2^n$. The set of all gates with the group operation of matrix multiplication is the unitary group $U(2^n)$.
 
-## RX
+### 1 Qubit gates
+**Pauli matrices** $`\sigma_x, \sigma_y, \sigma_z`$ can be used to perform the so called X,Y,Z tranformation. In PennyLane they can be used through $`R_X, R_Y, R_Z`$ gates:
 
-It represents a single qubit X rotation: 
+$`R_X`$ represents a single qubit X rotation: 
 
 ```math
-R_x(\phi) = e^{- i \phi \sigma_x /2} = 
+R_X(\phi) = e^{- i \phi \sigma_x /2} = 
 \begin{pmatrix}
 \cos(\phi /2) & -i \sin (\phi /2)  \\
 -i \sin (\phi /2) & \cos (\phi /2)
 \end{pmatrix}
 ```
 
-## RY
-
-It represents a single qubit Y rotation: 
+$`R_Y`$ represents a single qubit Y rotation: 
 
 ```math
-R_y(\phi) = e^{- i \phi \sigma_y /2} = 
+R_Y(\phi) = e^{- i \phi \sigma_y /2} = 
 \begin{pmatrix}
 \cos(\phi /2) & - \sin (\phi /2)  \\
 \sin (\phi /2) & \cos (\phi /2)
 \end{pmatrix}
 ```
 
-## RZ
 
-It represents a single qubit Z rotation: 
+$`R_Z`$ represents a single qubit Z rotation: 
+
 ```math
 R_z(\phi) = e^{- i \phi \sigma_z /2} = 
 \begin{pmatrix}
@@ -288,7 +288,40 @@ e^{- i \phi /2} & 0 \\
 0 & e^{ i \phi /2}
 \end{pmatrix}
 ```
-## CNOT
+
+**Phase Gate**, called PhaseShift in Pennylane is a single qubit local phase shift: 
+
+```math
+ R_{\phi} = e^{i \phi /2 } R_Z(\phi) = \begin{pmatrix}
+1 & 0\\
+0 & e^{i \phi}
+\end{pmatrix}
+```
+
+**Hadamard Gate** is used to transorm from computational to diagonal basis, $`\hat{H}\ket{0} = \ket{+}`$ and $` \hat{H} \ket{1} = \ket{-}`$. It's matrix representation is: 
+
+```math
+ H = \frac{1}{\sqrt{2}} =  \begin{pmatrix}
+1 & 1\\
+1 & -1
+\end{pmatrix}
+```
+
+### 2 Qubit gates
+
+**CNOT** gate can be represented as a $`4 \times 4`$ matrix: 
+
+```math
+\text{CNOT} (\alpha \ket{0} + \beta \ket{1})\ket{0} = \alpha \ket{00} + \beta \ket{11}
+```
+
+It can be used to create entanglement. Togethere with an Hadamard gate it can be used for **Bell states generation** and for **Bell state measurement** applying the gates in reverse order, using the unitary property. For example using 00 as input the output will be the $`\ket{\phi^+}`$ state: 
+
+<p align="center">
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/The_Hadamard-CNOT_transform_on_the_zero-state.png/400px-The_Hadamard-CNOT_transform_on_the_zero-state.png" alt="The Hadamard-CNOT Transform on the Zero-State" width="400"/>
+ </p>
+
+Bell states generation is used in a big variety of applications that use entanglement as a resource, such as Quantum Teleportation Protocol, Superdense Coding Protocol and so on and so forth. 
 
 ## Quantum embedding
 
