@@ -403,11 +403,13 @@ Usually it is used as decorator such as
 @qml.qnode(dev, interface="torch")
 ```
 
-## State Preparation
-
-### QubitStateVector
+## QubitStateVector
 
 QubitStateVector is involved prepares the subsystem given the ket vector (state) in the computational basis. The *ket vector* is a `array[complex]` of size $2\cdot \text{len}(\text{wires})$.
+
+## qml.state()
+
+`qml.state()` function is used to return the quantum state in the computational basis instructing the QNode to return its state. This function always return a pure state and the output shape depends on the number of wires (qubits) defined for the device. The returned array in lexicographic order meaning that havng two wires we will have a length of 4 in the output with the amplitude with respect to $`\{ \ket{00}, \ket{01}, \ket{10}, \ket{11} \}`$.
 
 ### AmplitudeDamping
 
