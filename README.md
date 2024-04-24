@@ -231,6 +231,26 @@ For pure states:
 - $`S(\rho) = 0`$
 
 When the overall function $`\ket{\phi}_{AB}`$ is pure, given $`\rho_{AB}`$, it means that $`S(\rho_{AB}) = 0`$. Then if $`S(\rho_A)=0 \rightarrow \text{pure}`$, then $`\rho_{AB}`$ is separable, otherwise A and B are entangled.  
+
+## Fidelity
+
+Fidelity is a measure of closeness between quantum states defined for density operators as: 
+```math
+F(\hat{\rho}, \hat{\sigma}) = \text{Tr}^2 \sqrt{\sigma^{\frac{1}{2}} \rho \sigma^{\frac{1}{2}}}
+```
+
+It is symmetric in the inputs, also if it does not seem, and when the two operators commute, for some orthonormal basis it is reduced to the sum over the vectors of the basis of the square root of the product of the eigenvalues of the two operators. 
+It can also be defined between a mixed state and a pure state as: 
+
+```math
+F(\ket{\phi}, \hat{\rho}) = \braket{\phi| \rho |\phi}
+```
+
+And between pure and pure: 
+
+```math
+F(\ket{\phi}, \ket{\psi}) = |\braket{\phi|\psi}|^2
+```
 ## Qubit gates
 Quantum gates, acting on $n$ qubits, are represented by unitary matrix $2^n \times 2^n$. The set of all gates with the group operation of matrix multiplication is the unitary group $U(2^n)$.
 
