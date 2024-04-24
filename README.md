@@ -121,6 +121,7 @@ That is null only if $`\ket{\psi}`$ is an eigenstate of $`\hat{H}`$.
 *Side note: This definition can be used to enunciate the Indetermination Principle of Heisenberg that states that given two (limited) hermitian operators $`\hat{A}, \hat{B}: E_N \rightarrow E_N`$, $`\forall \ket{\psi} \in E_N`$ it holds $`\Delta A_{\psi}\Delta B_{\psi} \geq \frac{1}{2} |\left \langle [ \hat{A},\hat{B}] \right \rangle_{\psi}|`$.*
 
 # Qubit
+
 A qubit is a quantum system of dimension two and his state is usually represented using $\ket{\psi}$. To identify a qubit we can use the so called *computational basis* $` \{ \ket{0}, \ket{1} \} `$ living in the Hilbert space $\mathcal{H}, dim(\mathcal{H}) = 2$
 A single qubit can be represented as 
 
@@ -181,9 +182,55 @@ Then the also the so called **Bell states** form a basis of the Hilbert Space:
 | $`\ket{\phi^-}_{AB} = \frac{1}{\sqrt{2}} ( \ket{00} - \ket{11})`$ | Both qubits are in opposite states, with a phase of -1. |
 | $`\ket{\phi^+}_{AB} = \frac{1}{\sqrt{2}} ( \ket{00} + \ket{11})`$ | Both qubits are in the same state, with a phase of -1. |
 
-Expressin
 
+Considering N qubits, $`dim(\mathcal{H}_N) = 2^N`$. In the case of N separable qubits, they can be described using $`\{ \theta_i, \phi_i \}_{i=1}^N \rightarrow 2N \text{parameters}`$. In the case of entangled qubits $`2^N -1 - 1`$ parameters are needed, with a -1 due to normalization condition and a -1 due to a global phase. Entangled states are the *typical* while the separable are the *atypical*.
 
+## Pure states vs Mixed states
+**Pure states** are states on which you have full information about it's preparation, while for the so called **mixed states** you have ignorance in the preparation. In order to describe them it is needed to introduce the notion of **density operator**: 
+
+```math
+\hat{\rho} = \sum \limits_i p_i \ket{\phi_i} \bra{\phi_i}
+```
+where $`\sum \limits_{i=1}^l p_i = 1`$ and each $`p_i`$ is a probability associated to have the state $`\ket{\phi_i}`$. Obviously, the density operator for pure state is $`\hat{\rho} = \ket{\phi}\bra{\phi}`$ with $`p=1`$ to have state $`\ket{\phi}`$.
+
+Density operator can be represented by a matrix using the basis $`\{ \ket{i} \}`$ and the element $`ij`$ is given by $`\braket{i|\hat{\rho}|j}`$, where i is the column and j the row. 
+
+Properties of the density operator: 
+- $`\hat{\rho}`$ is hermitian;
+- $`\hat{\rho}`$ has unitary trace;
+- $`\hat{\rho}`$ is non-negative.
+
+A simple criterion to check if a state described by a density operator is pure or mixed is $`\text{Tr} \rho^2 = 1 \iff`$ pure state and $`\text{Tr} \rho^2 <1 \iff`$ mixed state. Another way is to diagonalize the density matrix and check for eigenvalues, if it is pure it has only one eigenvalues equal to 1 and the others 0s, while if it is mixed there exists at least two eigenvalues different from 0. 
+
+The density matrix of a two qubits state is a $`4 \times 4 `$ matrix in which, using the basis $`\{ \ket{00}, \ket{01}, \ket{10}, \ket{11} \}`$ each of the diagonal term indicates the *population* of the states 0000, 0101, 1010, 1111, while the other terms are called *coherence* terms. 
+
+It exists an operational approach to define the notion of **separability for mixed states** that is called *Local Operation and Classical Communication*. It means that A and B can prepare separable states acting on their qubit locally and they cooperate to create the full state using classical communication: 
+
+```math
+\rho_{AB} = \sum \limits_i p_i \rho_A^i \otimes \rho_B^i
+```
+
+**Entangled states** can be defined also in this case as non separable states. 
+
+In order to derive conditions on how to recognize entanglement for bi and multipartite systems is useful to introduce two different notions. The first one is the **Von Neumann Entropy**, the quantum analog of Shannon Entropy, that is defined as: 
+
+```math
+S(\rho) = - \text{Tr} [ \hat{\rho} \log_2 \hat{\rho}]
+```
+
+*Sidenote: in order to calculate it it is useful to perform diagonalization in order to simplify the operation before the trace.**
+
+The second is the concept of **reduced density operator** that is a way to describe the density operator of a subsystem starting from the density operator describing the system as a whole: 
+
+```math
+\hat{\rho}_A = \text{Tr}_B(\hat{\rho}_AB) = \sum \limits_{\gamma} {}_{B} \braket{\gamma|\hat{\rho_{AB}} |\gamma}_{B}
+```
+
+For pure states: 
+- $`\text{Tr} \rho^2 = 1`$
+- $`S(\rho) = 0`$
+
+When the overall function $`\ket{\phi}_{AB}`$ is pure, given $`\rho_{AB}`$, it means that $`S(\rho_{AB}) = 0`$. Then if $`S(\rho_A)=0 \rightarrow \text{pure}`$, then $`\rho_{AB}`$ is separable, otherwise A and B are entangled.  
 ## Qubit gates
 Quantum gates, acting on $n$ qubits, are represented by unitary matrix $2^n \times 2^n$. The set of all gates with the group operation of matrix multiplication is the unitary group $U(2^n)$.
 
