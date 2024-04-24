@@ -34,11 +34,11 @@ Bra-Ket notation, introduced by Dirac in 1939 to describe quantum states, can be
 
 $` \forall \ket{a},\ket{b},\ket{c} \in E, \, \forall \alpha, \beta \in S`$: 
 - $` \braket{a|b} = \braket{b|a}^*`$: commutative property does not hold;
-- $` \bra{c} (\alpha \ket{a} + \beta \ket{b}) = \alpha \braket{c|a} + \beta \braket{c|b}`$: it is linear wrt ket vector;
+- $` \bra{c} (\alpha \ket{a} + \beta \ket{b}) = \alpha \braket{c|a} + \beta \braket{c|b}`$: it is linear with respect to ket vector;
 - $` \braket{a|a} \geq 0, \braket{a|a} \iff \ket{a} = \ket{0}`$
 - $\braket{a|b} = \braket{b|a} = 0 \iff \ket{a},\ket{b} \in E$ are orthogonal.
 
-$` \forall \ket{a},\ket{b}, \ket{c} \in E \, \forall \alpha, \beta \in S `$, defining $` \ket{s} = \alpha \ket{a} + \beta \ket{b}`$ the product $` \braket{c|s} = \alpha \braket{c|a} + \beta \braket{c|b}`$, but $` \braket{s|c} = \braket{c|s}^* = \alpha^* \braket{a|c} + \beta^* \braket{b|c}`$, meaning that is *antilinear* in $\bra{s}$. In order to solve this sort of asimmetry, it can be defined a **dual** vector space $`E^*`$ containing the element of E,  but in bra form. In this way it exists a one-to-one correspondence between the elements of E and the elements of $`E^*`$, $` \forall \ket{a} \in E \exists ! \bra{a} \in E^* `$ and viceversa. The scalar product is now defined as: 
+$` \forall \ket{a},\ket{b}, \ket{c} \in E \, \forall \alpha, \beta \in S `$, defining $` \ket{s} = \alpha \ket{a} + \beta \ket{b}`$ the product $` \braket{c|s} = \alpha \braket{c|a} + \beta \braket{c|b}`$, but $` \braket{s|c} = \braket{c|s}^* = \alpha^* \braket{a|c} + \beta^* \braket{b|c}`$, meaning that is *antilinear* in $\bra{s}$. In order to solve this sort of asimmetry, it can be defined a **dual** vector space $`E^*`$ containing the element of E,  but in bra form. In this way it exists a one-to-one correspondence between the elements of E and the elements of $`E^*`$, $` \forall \ket{a} \in E \, \exists ! \bra{a} \in E^* `$ and viceversa. The scalar product is now defined as: 
 
 ```math
 \braket{\cdot | \cdot}: E^* \times E \rightarrow \mathbb{C}
@@ -58,7 +58,7 @@ Given the succession $`\{ \ket{a_k}\}_{k=1}^{\infty}`$ in the normed space $`(E,
 
 The succession $`\{ \ket{a_k}\}_{k=1}^{\infty}`$ in the normed space $`(E,||\cdot||)`$ is said to be of **Cauchy** $` \iff \forall \epsilon > 0, \exists k_0(\epsilon)`$ such that $` ||a_k - a_m || < \epsilon`$, $` \forall k,m \geq k_0`$. It can be proved that every convergent succession is a Cauchy succession, but not convergent Caucy succession can exist. 
 
-A vector space is said to be **complete** if and only if every Caucy succession of his elements, given a norm, converges to an element belonging to the same vectorial space. A metric space that is normed and complete is said to be **Banach space**. If the norm that induces the convergence and the completeness is induced by the scalar product $` || \cdot || \sqrt{\braket{\cdot|\cdot}}`$ the complete vectorial space is an **Hilbert space**.
+A vector space is said to be **complete** if and only if every Cauchy succession of his elements, given a norm, converges to an element belonging to the same vectorial space. A metric space that is normed and complete is said to be **Banach space**. If the norm that induces the convergence and the completeness is induced by the scalar product $` || \cdot || \sqrt{\braket{\cdot|\cdot}}`$ the complete vectorial space is an **Hilbert space**.
 
 The concept of **operator** generalizes in a vector space a function that is instead definde in a scalar field. Considering an operation $f$ in the vector space $E$ that associates to $`\ket{a} \in D \subset E`$ a vector $`\ket{b} \in E`$, $`f: D \rightarrow E`$. In operatorial form the relationship can be written as: 
 
@@ -66,9 +66,9 @@ The concept of **operator** generalizes in a vector space a function that is ins
 \hat{F} \ket{a} = \ket{b}
 ```
 An operator is defined if and only if is defined is *action*. In general the product of two operators is not commutative but it is if the so called **commutator** between them is null: $`[\hat{F}, \hat{G}] = \hat{F} \hat{G} - \hat{G} \hat{F}`$.
-In a vector space $E$ the N vectors of the set $`\{ ket{e_k}\}_{k=1}^N \subset E`$, that does not contain the null vector, are linear independent if and only if $`\sum \limits_{k=1}{N} c_k \ket{e_k} = \ket{0}`$ is equal to the condition $`c_k = 0 \, \forall k \in \{1,2,\dots,N \}`$. The maximum number of linear independent vectors is equal to the dimension of the vector space. 
+In a vector space $E$ the N vectors of the set $`\{ \ket{e_k}\}_{k=1}^N \subset E`$, that does not contain the null vector, are linear independent if and only if $`\sum \limits_{k=1}^{N} c_k \ket{e_k} = \ket{0}`$ is equal to the condition $`c_k = 0 \, \forall k \in \{1,2,\dots,N \}`$. The maximum number of linear independent vectors is equal to the dimension of the vector space. 
 
-Given $`\{ \ket{e_k}\}_{k=1}^N \subset E`$ is a set of linear independent vectors, this set is a **basis** if and only if $`\forall \ket{a} \in E`$ it is possible to write: 
+Given $`\{ \ket{e_k}\}_{k=1}^N \subset E`$, a set of linear independent vectors, this set is a **basis** if and only if $`\forall \ket{a} \in E`$ it is possible to write: 
 
 ```math
 \ket{a} = \sum \limits_{k=1}^N a_k \ket{e_k}
@@ -101,7 +101,7 @@ In the case of orthonormal basis $`\{ \ket{u_k}\}_{k=1}^N`$, $`\braket{u_k|u_j} 
 
 If the matrix identity that represents the vectorial $`\hat{A}\ket{a} = \ket{b}`$ is $`Aa = b`$, then for the dual $`\bra{b} = \bra{a}\hat{A}^{\dagger}`$ is represented by $`b^{\dagger} = a^{\dagger} A^{\dagger}`$.
 
-In Quantum Mechanics all the property of a physics system that can be measured, assciating to them a real quantity, are defined as **observables**. The observables are represented by hermitian operators acting on Hilbert spaces. Denoting as $`\hat{H}: E_N \rightarrow E_N`$ an hermitian operator and $`\{ \ket{\phi_k} \}_{k=1}^N`$  an orthonormal basis of $`E_N`$ composed by eigenvectors of $`\hat{H}`$ with eigenvalues $`\{ \lambda_k\}_{k=1}^N`$, the eigenvalues are the unique possible results of measuring the physical quantity associated to the operator $`\hat{H}`$ on a given physics system.
+In Quantum Mechanics all the properties of a physics system that can be measured, i.e. associate to them a real quantity, are defined as **observables**. The observables are represented by hermitian operators acting on Hilbert spaces. Denoting as $`\hat{H}: E_N \rightarrow E_N`$ an hermitian operator and $`\{ \ket{\phi_k} \}_{k=1}^N`$  an orthonormal basis of $`E_N`$ composed by eigenvectors of $`\hat{H}`$ with eigenvalues $`\{ \lambda_k\}_{k=1}^N`$, the eigenvalues are the unique possible results of measuring the physical quantity associated to the operator $`\hat{H}`$ on a given physics system.
 
 If a physics system is in a state described by the vector $`\ket{\psi} \in E_N`$ the **probability** to obtain $`\lambda_k`$ as results of measuring the physical quantity to which the operator $`\hat{H}`$ is associated is given by $`c^k = \braket{\phi_k|\psi}`$. This means to make the system collapse in the eigenstate $`\ket{\phi_k}`$. 
 
@@ -121,24 +121,70 @@ That is null only if $`\ket{\psi}`$ is an eigenstate of $`\hat{H}`$.
 *Side note: This definition can be used to enunciate the Indetermination Principle of Heisenberg that states that given two (limited) hermitian operators $`\hat{A}, \hat{B}: E_N \rightarrow E_N`$, $`\forall \ket{\psi} \in E_N`$ it holds $`\Delta A_{\psi}\Delta B_{\psi} \geq \frac{1}{2} |\left \langle [ \hat{A},\hat{B}] \right \rangle_{\psi}|`$.*
 
 # Qubit
-A qubit is a quantum system of dimension two and is usually represented using $\ket{\psi}$. To identify a qubit we can use the so called *computational basis* $` \{ \ket{0}, \ket{1} \} `$ living in the Hilbert space $\mathcal{H}, dim(\mathcal{H}) = 2$
-The vector representation of a single qubit is: 
+A qubit is a quantum system of dimension two and his state is usually represented using $\ket{\psi}$. To identify a qubit we can use the so called *computational basis* $` \{ \ket{0}, \ket{1} \} `$ living in the Hilbert space $\mathcal{H}, dim(\mathcal{H}) = 2$
+A single qubit can be represented as 
 
 ```math
-\ket{\psi} = \alpha \ket{0} + \beta \ket{1} \rightarrow \begin{pmatrix}
-\alpha \\
-\beta
-\end{pmatrix}
+\ket{\psi} = \alpha \ket{0} + \beta \ket{1} 
 ```
-
+where $`\alpha, \beta \in \mathbb{C}`$ and $`|\alpha|^2 + |\beta|^2 = 1`$. Obviously $`\braket{0|1} = \braket{1|0} = 0`$
 The computational basis vector representation is $` \ket{0} = \begin{pmatrix}
 1 \\
 0
 \end{pmatrix}, \ket{1} = \begin{pmatrix}
 0 \\
 1
-\end{pmatrix}`$.
+\end{pmatrix}`$ that can be used to write $`\ket{\psi}`$ in his vectorial form $` \begin{pmatrix}
+\alpha \\
+\beta
+\end{pmatrix}`$
 
+Other two important basis are the **diagonal basis**: 
+
+```math
+\ket{\pm} = \frac{1}{\sqrt{2}}(\ket{0} \pm \ket{1}) \rightarrow \frac{1}{\sqrt{2}} \begin{pmatrix}
+1 \\
+\pm 1
+\end{pmatrix}
+```
+
+And the **Left/Right basis**: 
+
+```math
+\ket{R/L} = \frac{1}{\sqrt{2}}(\ket{0} \pm i \ket{1}) \rightarrow \frac{1}{\sqrt{2}} \begin{pmatrix}
+1 \\
+\pm i
+\end{pmatrix}
+```
+The state of a qubit can also be write as follow: 
+
+```math
+\ket{\psi} = \cos \frac{\theta}{2} \ket{0} + e^{i\phi} \sin \frac{\theta}{2} \ket{1}
+```
+where $`0 \leq \theta \leq \pi`$ and $`0 \leq \phi \leq 2\pi`$. 
+Two qubits lives in the so called *bipartite Hilbert space* $`\mathcal{H}_{AB}`$ that is the tensorial product of the respective Hilbert Spaces $`\mathcal{H}_A, \mathcal{H}_B`$. Usually the tensorial product $`\ket{i}_{A} \otimes \ket{j}_B`$, where $`i,j \in \{ 0,1 \}`$, is abbreviated by $`\ket{ij}_AB`$. So a basis for the bipartite Hilbert space can be $`\{ \ket{00}_AB, \ket{01}_AB, \ket{10}_AB, \ket{11}_AB \}`$. The general state can be expressed as: 
+
+```math
+\ket{\psi} = \sum \limits_{i,j = 0}^1 \alpha_{ij} \ket{ij}
+```
+
+where the sum of the squared modules of the coefficients has to be 1. 
+
+We can define **separable states** as states where we can write $`\ket{\phi}_{AB} = \ket{\phi}_A \otimes \ket{\phi}_B`$. Thus, $`\ket{\phi}_AB`$ is **entangled** if it is not separable. 
+Then the also the so called **Bell states** form a basis of the Hilbert Space: 
+
+
+| Bell State | Description                    |
+|------------|--------------------------------|
+| $`\ket{\psi^-}_{AB} = \frac{1}{\sqrt{2}} ( \ket{01} - \ket{10})`$  | Both qubits are in the same state (either 0 or 1). |
+| $`\ket{\psi^+}_{AB} = \frac{1}{\sqrt{2}} ( \ket{01} + \ket{10})`$ | Both qubits are in opposite states, with a phase of +1. |
+| $`\ket{\phi^-}_{AB} = \frac{1}{\sqrt{2}} ( \ket{00} - \ket{11})`$ | Both qubits are in opposite states, with a phase of -1. |
+| $`\ket{\phi^+}_{AB} = \frac{1}{\sqrt{2}} ( \ket{00} + \ket{11})`$ | Both qubits are in the same state, with a phase of -1. |
+
+Expressin
+
+
+## Qubit gates
 Quantum gates, acting on $n$ qubits, are represented by unitary matrix $2^n \times 2^n$. The set of all gates with the group operation of matrix multiplication is the unitary group $U(2^n)$.
 
 ## RX
