@@ -223,7 +223,7 @@ S(\rho) = - \text{Tr} [ \hat{\rho} \log_2 \hat{\rho}]
 The second is the concept of **reduced density operator** that is a way to describe the density operator of a subsystem starting from the density operator describing the system as a whole: 
 
 ```math
-\hat{\rho}_A = \text{Tr}_B(\hat{\rho}_AB) = \sum \limits_{\gamma} {}_{B} \braket{\gamma|\hat{\rho_{AB}} |\gamma}_{B}
+\hat{\rho}_A = \text{Tr}_B(\hat{\rho}_AB) = \sum \limits_{\gamma} {}_{B} \braket{\gamma|\hat{\rho}_{AB} |\gamma}_{B}
 ```
 
 For pure states: 
