@@ -177,10 +177,10 @@ Then the also the so called **Bell states** form a basis of the Hilbert Space:
 
 | Bell State | Description                    |
 |------------|--------------------------------|
-| $`\ket{\psi^-}_{AB} = \frac{1}{\sqrt{2}} ( \ket{01} - \ket{10})`$  | Both qubits are in the same state (either 0 or 1). |
+| $`\ket{\psi^-}_{AB} = \frac{1}{\sqrt{2}} ( \ket{01} - \ket{10})`$ | Both qubits are in opposite states, with a phase of -1. |
 | $`\ket{\psi^+}_{AB} = \frac{1}{\sqrt{2}} ( \ket{01} + \ket{10})`$ | Both qubits are in opposite states, with a phase of +1. |
-| $`\ket{\phi^-}_{AB} = \frac{1}{\sqrt{2}} ( \ket{00} - \ket{11})`$ | Both qubits are in opposite states, with a phase of -1. |
-| $`\ket{\phi^+}_{AB} = \frac{1}{\sqrt{2}} ( \ket{00} + \ket{11})`$ | Both qubits are in the same state, with a phase of -1. |
+| $`\ket{\phi^-}_{AB} = \frac{1}{\sqrt{2}} ( \ket{00} - \ket{11})`$ | Both qubits are in the same state, with a phase of -1. |
+| $`\ket{\phi^+}_{AB} = \frac{1}{\sqrt{2}} ( \ket{00} + \ket{11})`$ | Both qubits are in the same state (either 0 or 1). |
 
 
 Considering N qubits, $`dim(\mathcal{H}_N) = 2^N`$. In the case of N separable qubits, they can be described using $`\{ \theta_i, \phi_i \}_{i=1}^N \rightarrow 2N \text{parameters}`$. In the case of entangled qubits $`2^N -1 - 1`$ parameters are needed, with a -1 due to normalization condition and a -1 due to a global phase. Entangled states are the *typical* while the separable are the *atypical*.
