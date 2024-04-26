@@ -301,7 +301,7 @@ e^{- i \phi /2} & 0 \\
 **Hadamard Gate** is used to transorm from computational to diagonal basis, $`\hat{H}\ket{0} = \ket{+}`$ and $` \hat{H} \ket{1} = \ket{-}`$. It's matrix representation is: 
 
 ```math
- H = \frac{1}{\sqrt{2}} =  \begin{pmatrix}
+ H = \frac{1}{\sqrt{2}} \begin{pmatrix}
 1 & 1\\
 1 & -1
 \end{pmatrix}
