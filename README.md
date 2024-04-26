@@ -384,6 +384,18 @@ The number of amplitudes to be encoded is $N \times M$, a system of $n$ qubits p
 
 # PennyLane
 
+PennyLane core feature is to compute gradients of variational quantum circuits making them compatible with classical techniques as backpropagation. **QNode** represent a node performing quantum computation. QNodes run quantum circuits on devices that may be simulators or external plugins, where the quantum circuiti is specified by defining quantum functions (that internally use *quantum tapes* context managers recording a queue of instructions). QNode can be run in *forward* to run quantum circuits or in *backward* to compute gradients. In both cases there are basically three steps: 
+- build one or more tapes using quantum functions;
+- run tapes on device;
+- post-process the results.
+**Quantum operators**, describing the physical system and its dynamics, are represented by `operator` class and they are defined by their name, trainable and non trainable parameters, hyperparameters and wires (qubits) where they are acting on.
+**MeasurementProcess** describes how to extract information from a quantum system with a measurement process, such as `expval()`. An instance of MeasurementProcess class specifies the measured observables which are operators themselves and a return_type such as expectation, variance, probability, state or sample. 
+
+
+<p align="center">
+<img src="https://docs.pennylane.ai/en/stable/_images/pl_overview.png" />
+ </p>
+
 ## Wires 
 PennyLane uses the term *wire* to refer to a quantum subsystem.
 
@@ -395,14 +407,19 @@ This function is used to load a particular quantum device, which can then be use
 
 ## qml.qnode
 
-  *qnode* is an object used to represent a quantum node in the hybrid computational graph. It contains a quantum function (quantum circuit function), corresponding to a variational circuit and the computational device where it is executed. It corresponds to construct a *QuantumTape* instance representing the circuit.
-The parameter *interface* is used for the classical backpropagation and it is possible to use torch, tf, jax, autograd etc.
+ *QNode* is an object used to represent a quantum node in the hybrid computational graph. It is created by a quantum function, corresponding to a variational circuit and the computational device where it is executed. 
+It encapsulates a function 
+
+```math
+f(x;\theta) = \mathbb{R}^m \rightarrow \mathbb{R^n}
+``
+ It corresponds to construct a *QuantumTape* instance representing the circuit.
 Usually it is used as decorator such as
 
 ```python
 @qml.qnode(dev, interface="torch")
 ```
-
+that automates the process of creating QNode from a provided quantum function and device. The crucial property is that it is **differentiable** by classical autodifferentiable frameworks that can be specified using *interface* parameter such as torch, tf, jax, autograd etc. 
 ## QubitStateVector
 
 QubitStateVector is involved prepares the subsystem given the ket vector (state) in the computational basis. The *ket vector* is a `array[complex]` of size $2\cdot \text{len}(\text{wires})$.
