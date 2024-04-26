@@ -230,7 +230,7 @@ For pure states:
 - $`\text{Tr} \rho^2 = 1`$
 - $`S(\rho) = 0`$
 
-When the overall function $`\ket{\phi}_{AB}`$ is pure, given $`\rho_{AB}`$, it means that $`S(\rho_{AB}) = 0`$. Then if $`S(\rho_A)=0 \rightarrow \text{pure}`$, then $`\rho_{AB}`$ is separable, otherwise A and B are entangled.  
+When the overall function $`\ket{\phi}_{AB}`$ is pure, given $`\rho_{AB}`$, it means that $`S(\rho_{AB}) = 0`$. If $`S(\rho_A)=0 \rightarrow \text{pure}`$, then $`\rho_{AB}`$ is separable, otherwise A and B are entangled.  
 
 ## Fidelity
 
