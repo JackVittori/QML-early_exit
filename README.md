@@ -1,5 +1,24 @@
 # QML-early_exit
-A repositories that contains strategies about how to implement Early-Exit Quantum Machine Learning. 
+A repositories that contains strategies about how to implement Early-Exit Quantum Machine Learning.
+
+project-root/
+│
+├── folder1/
+│   ├── subfolder1/
+│   │   ├── file1.txt
+│   │   └── file2.txt
+│   ├── subfolder2/
+│   │   ├── file3.txt
+│   │   └── file4.txt
+│   └── ...
+│
+├── folder2/
+│   ├── ...
+│   └── ...
+│
+└── ...
+
+
 ## General idea
 Simply speaking, the idea is to see if we can develop strategy to execute task using for some exampkles a less amount of layers. This could help the research in the paradigm of NISQ devices, the less we use the quantum part the less the noise. So the first step is to take a well-working baseline model to make classification on MNIST dataset containing only zeros and ones digits, then: 
 1. train the whole model
