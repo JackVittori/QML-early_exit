@@ -411,8 +411,8 @@ This function is used to load a particular quantum device, which can then be use
 It encapsulates a function 
 
 ```math
-f(x;\theta) = \mathbb{R}^m \rightarrow \mathbb{R^n}
-``
+f(x;\theta) = \mathbb{R}^m \rightarrow \mathbb{R}^n
+```
  It corresponds to construct a *QuantumTape* instance representing the circuit.
 Usually it is used as decorator such as
 
