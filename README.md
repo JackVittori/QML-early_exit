@@ -247,12 +247,12 @@ In order to derive conditions on how to recognize entanglement for bi and multip
 S(\rho) = - \text{Tr} [ \hat{\rho} \log_2 \hat{\rho}]
 ```
 
-*Sidenote: in order to calculate it it is useful to perform diagonalization in order to simplify the operation before the trace.**
+*Sidenote: in order to calculate it it is useful to perform diagonalization in order to simplify the operation before the trace.*
 
 The second is the concept of **reduced density operator** that is a way to describe the density operator of a subsystem starting from the density operator describing the system as a whole: 
 
 ```math
-\hat{\rho}_A = \text{Tr}_B(\hat{\rho}_AB) = \sum \limits_{\gamma} {}_{B} \braket{\gamma|\hat{\rho}_{AB} |\gamma}_{B}
+\hat{\rho}_A = \text{Tr}_B(\hat{\rho}_{AB}) = \sum \limits_{\gamma} {}_{B} \braket{\gamma|\hat{\rho}_{AB} |\gamma}_{B}
 ```
 
 For pure states: 
