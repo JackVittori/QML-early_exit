@@ -220,7 +220,7 @@ Considering N qubits, $`dim(\mathcal{H}_N) = 2^N`$. In the case of N separable q
 ```math
 \hat{\rho} = \sum \limits_i p_i \ket{\phi_i} \bra{\phi_i}
 ```
-where $`\sum \limits_{i=1}^l p_i = 1`$ and each $`p_i`$ is a probability associated to have the state $`\ket{\phi_i}`$. Obviously, the density operator for pure state is $`\hat{\rho} = \ket{\phi}\bra{\phi}`$ with $`p=1`$ to have state $`\ket{\phi}`$.
+where $`\sum \limits_{i=1} p_i = 1`$ and each $`p_i`$ is a probability associated to have the state $`\ket{\phi_i}`$. Obviously, the density operator for pure state is $`\hat{\rho} = \ket{\phi}\bra{\phi}`$ with $`p=1`$ to have state $`\ket{\phi}`$.
 
 Density operator can be represented by a matrix using the basis $`\{ \ket{i} \}`$ and the element $`ij`$ is given by $`\braket{i|\hat{\rho}|j}`$, where i is the column and j the row. 
 
