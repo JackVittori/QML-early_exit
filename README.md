@@ -199,7 +199,7 @@ Two qubits lives in the so called *bipartite Hilbert space* $`\mathcal{H}_{AB}`$
 
 where the sum of the squared modules of the coefficients has to be 1. 
 
-We can define **separable states** as states where we can write $`\ket{\phi}_{AB} = \ket{\phi}_A \otimes \ket{\phi}_B`$. Thus, $`\ket{\phi}_AB`$ is **entangled** if it is not separable. 
+We can define **separable states** as states where we can write $`\ket{\phi}_{AB} = \ket{\phi}_A \otimes \ket{\phi}_B`$. Thus, $`\ket{\phi}_{AB}`$ is **entangled** if it is not separable. 
 
 Also the so called **Bell states** form a basis of the Hilbert Space and it is composed by entangled states: 
 
