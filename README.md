@@ -191,7 +191,7 @@ The state of a qubit can also be write as follow:
 ```
 where $`0 \leq \theta \leq \pi`$ and $`0 \leq \phi \leq 2\pi`$. 
 
-Two qubits lives in the so called *bipartite Hilbert space* $`\mathcal{H}_{AB}`$ that is the tensorial product of the respective Hilbert Spaces $`\mathcal{H}_A, \mathcal{H}_B`$. Usually the tensorial product $`\ket{i}_{A} \otimes \ket{j}_B`$, where $`i,j \in \{ 0,1 \}`$, is abbreviated by $`\ket{ij}_AB`$. So a basis for the bipartite Hilbert space can be $`\{ \ket{00}_AB, \ket{01}_AB, \ket{10}_AB, \ket{11}_AB \}`$. The general state can be expressed as: 
+Two qubits lives in the so called *bipartite Hilbert space* $`\mathcal{H}_{AB}`$ that is the tensorial product of the respective Hilbert Spaces $`\mathcal{H}_A, \mathcal{H}_B`$. Usually the tensorial product $`\ket{i}_{A} \otimes \ket{j}_B`$, where $`i,j \in \{ 0,1 \}`$, is abbreviated by $`\ket{ij}_AB`$. So a basis for the bipartite Hilbert space can be $`\{ \ket{00}_AB, \ket{01}_AB, \ket{10}_{AB}, \ket{11}_AB \}`$. The general state can be expressed as: 
 
 ```math
 \ket{\psi} = \sum \limits_{i,j = 0}^1 \alpha_{ij} \ket{ij}
