@@ -149,7 +149,7 @@ That is null only if $`\ket{\psi}`$ is an eigenstate of $`\hat{H}`$.
 
 # Qubit
 
-A qubit is a quantum system of dimension two and his state is usually represented using $\ket{\psi}$. To identify a qubit we can use the so called *computational basis* $` \{ \ket{0}, \ket{1} \} `$ living in the Hilbert space $\mathcal{H}, dim(\mathcal{H}) = 2$
+A qubit is a quantum system of dimension two and his state is usually represented using $\ket{\psi}$. To identify a qubit we can use the so called *computational basis* $` \{ \ket{0}, \ket{1} \} `$ of Hilbert space $\mathcal{H}, dim(\mathcal{H}) = 2$
 A single qubit can be represented as 
 
 ```math
