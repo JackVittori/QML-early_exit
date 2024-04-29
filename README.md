@@ -29,6 +29,8 @@ Simply speaking, the idea is to see if we can develop strategy to execute task u
 
 # Pre-requisites
 
+## Hilbert space and braket notation
+
 A **vector space** E is a non empty set in which are defined two operations: 
 - a map: $E \times E \rightarrow E$ called *sum* that associates a couple of elements of E to a third element in E;
 - a map: $\mathbb{C} \times E \rightarrow E$ called *scalar multiplication* that associates to a couple composed by a complex number and an element of E an element of E.
@@ -80,12 +82,15 @@ The succession $`\{ \ket{a_k}\}_{k=1}^{\infty}`$ in the normed space $`(E,||\cdo
 
 A vector space is said to be **complete** if and only if every Cauchy succession of his elements, given a norm, converges to an element belonging to the same vectorial space. A metric space that is normed and complete is said to be **Banach space**. If the norm that induces the convergence and the completeness is induced by the scalar product $` || \cdot || \sqrt{\braket{\cdot|\cdot}}`$ the complete vectorial space is an **Hilbert space**.
 
+## Operator
+
 The concept of **operator** generalizes in a vector space a function that is instead definde in a scalar field. Considering an operation $f$ in the vector space $E$ that associates to $`\ket{a} \in D \subset E`$ a vector $`\ket{b} \in E`$, $`f: D \rightarrow E`$. In operatorial form the relationship can be written as: 
 
 ```math
 \hat{F} \ket{a} = \ket{b}
 ```
 An operator is defined if and only if is defined is *action*. In general the product of two operators is not commutative but it is if the so called **commutator** between them is null: $`[\hat{F}, \hat{G}] = \hat{F} \hat{G} - \hat{G} \hat{F}`$.
+
 In a vector space $E$ the N vectors of the set $`\{ \ket{e_k}\}_{k=1}^N \subset E`$, that does not contain the null vector, are linear independent if and only if $`\sum \limits_{k=1}^{N} c_k \ket{e_k} = \ket{0}`$ is equal to the condition $`c_k = 0 \, \forall k \in \{1,2,\dots,N \}`$. The maximum number of linear independent vectors is equal to the dimension of the vector space. 
 
 Given $`\{ \ket{e_k}\}_{k=1}^N \subset E`$, a set of linear independent vectors, this set is a **basis** if and only if $`\forall \ket{a} \in E`$ it is possible to write: 
@@ -121,6 +126,7 @@ In the case of orthonormal basis $`\{ \ket{u_k}\}_{k=1}^N`$, $`\braket{u_k|u_j} 
 
 If the matrix identity that represents the vectorial $`\hat{A}\ket{a} = \ket{b}`$ is $`Aa = b`$, then for the dual $`\bra{b} = \bra{a}\hat{A}^{\dagger}`$ is represented by $`b^{\dagger} = a^{\dagger} A^{\dagger}`$.
 
+## Observables
 In Quantum Mechanics all the properties of a physics system that can be measured, i.e. associate to them a real quantity, are defined as **observables**. The observables are represented by hermitian operators acting on Hilbert spaces. Denoting as $`\hat{H}: E_N \rightarrow E_N`$ an hermitian operator and $`\{ \ket{\phi_k} \}_{k=1}^N`$  an orthonormal basis of $`E_N`$ composed by eigenvectors of $`\hat{H}`$ with eigenvalues $`\{ \lambda_k\}_{k=1}^N`$, the eigenvalues are the unique possible results of measuring the physical quantity associated to the operator $`\hat{H}`$ on a given physics system.
 
 If a physics system is in a state described by the vector $`\ket{\psi} \in E_N`$ the **probability** to obtain $`\lambda_k`$ as results of measuring the physical quantity to which the operator $`\hat{H}`$ is associated is given by $`c^k = \braket{\phi_k|\psi}`$. This means to make the system collapse in the eigenstate $`\ket{\phi_k}`$. 
