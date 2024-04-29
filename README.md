@@ -144,6 +144,7 @@ The *root mean squared error* of an observable $`\hat{H}`$ in a state $`\ket{\ps
 ```
 
 That is null only if $`\ket{\psi}`$ is an eigenstate of $`\hat{H}`$.
+
 *Side note: This definition can be used to enunciate the Indetermination Principle of Heisenberg that states that given two (limited) hermitian operators $`\hat{A}, \hat{B}: E_N \rightarrow E_N`$, $`\forall \ket{\psi} \in E_N`$ it holds $`\Delta A_{\psi}\Delta B_{\psi} \geq \frac{1}{2} |\left \langle [ \hat{A},\hat{B}] \right \rangle_{\psi}|`$.*
 
 # Qubit
