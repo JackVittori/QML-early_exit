@@ -402,6 +402,22 @@ where $\alpha_i$ are the elements of the amplitude vector $\alpha$ and $\ket{i}$
 
 The number of amplitudes to be encoded is $N \times M$, a system of $n$ qubits provides $2^n$ amplitudes, so amplitude embedding requires $n \geq \log_2 (NM)$ qubits.
 
+To encode $`X = [1.2,2.7,1.1,0.5]`$ two qubits are needed with $`\ket{\phi} = \sum \limits_{i=1}^n x_i \ket{i}`$: 
+
+```math
+\ket{psi} = \frac{1.2}{\sqrt{10.19}} \ket{00} + \frac{2.7}{\sqrt{10.19}} \ket{01} + \frac{1.1}{\sqrt{10.19}} \ket{10} + \frac{0.5}{\sqrt{10.19}} \ket{11}
+```
+
+### Angle Embedding
+
+Information is encoded in the relative phase between different quantum states. The probability of measuring a state is determined by its phase. Considering a single qubit state $`\ket{\phi}`$ and an angle $`\theta`$, angle embedding can be expressed as: 
+
+```math
+\ket{\psi(\theta)} = R_y (\theta) \ket{0} + e^{i\phi} R_y (\theta) \ket{1}
+```
+
+where the phase $`e^{i\phi}`$ is optional.
+
 # PennyLane
 
 PennyLane core feature is to compute gradients of variational quantum circuits making them compatible with classical techniques as backpropagation. **QNode** represent a node performing quantum computation. QNodes run quantum circuits on devices that may be simulators or external plugins, where the quantum circuiti is specified by defining quantum functions (that internally use *quantum tapes* context managers recording a queue of instructions). QNode can be run in *forward* to run quantum circuits or in *backward* to compute gradients. In both cases there are basically three steps: 
