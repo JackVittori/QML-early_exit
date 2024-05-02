@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="qml" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="tesi" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="qml" project-jdk-type="Python SDK" />
 </project>
