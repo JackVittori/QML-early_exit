@@ -13,12 +13,12 @@ class QuantumCircuit(Module):
         self.dev = qml.device("default.qubit", wires=num_qubits)
 
         @qml.qnode(self.dev, interface=interface)
-        def quantum_function(params, state=None):
+        def _quantum_function(params, state=None):
             if state is not None:
-                qml.QubitStateVector(state, wires=range(num_qubits))
+                qml.QubitStateVector(state, wires=range(self.num_qubits))
 
-            for i in range(num_layers):
-                for j in range(num_qubits):
+            for i in range(self.num_layers):
+                for j in range(self.num_qubits):
                     qml.RX(params[i, j, 0], wires=j)
                     qml.RY(params[i, j, 1], wires=j)
                     qml.RZ(params[i, j, 2], wires=j)
@@ -26,7 +26,7 @@ class QuantumCircuit(Module):
                     qml.CNOT(wires=[j, (j + 1) % num_qubits])
             return qml.state()
 
-        self.quantum_node = quantum_function
+        self.quantum_node = _quantum_function
 
     def forward(self, state=None):
         return self.quantum_node(self.params, state=state)
