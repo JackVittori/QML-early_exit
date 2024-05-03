@@ -1,9 +1,7 @@
 import torch
 import pennylane as qml
 from torch.nn import Module
-
-NUM_QUBITS = 8
-NUM_LAYERS = 3
+import matplotlib.pyplot as plt
 
 
 class QuantumCircuit(Module):
@@ -15,7 +13,7 @@ class QuantumCircuit(Module):
         self.dev = qml.device("default.qubit", wires=num_qubits)
 
         @qml.qnode(self.dev, interface=interface)
-        def qfunc(params, state=None):
+        def quantum_function(params, state=None):
             if state is not None:
                 qml.QubitStateVector(state, wires=range(num_qubits))
 
@@ -28,34 +26,29 @@ class QuantumCircuit(Module):
                     qml.CNOT(wires=[j, (j + 1) % num_qubits])
             return qml.state()
 
-        self.qfunc = qfunc
+        self.quantum_node = quantum_function
 
     def forward(self, state=None):
-        return self.qfunc(self.params, state=state)
+        return self.quantum_node(self.params, state=state)
 
 
 class FullQuantumModel(Module):
-    def __init__(self):
+    def __init__(self, qubits, layers):
         super().__init__()
-        self.quantum_layer = QuantumCircuit(NUM_QUBITS, NUM_LAYERS)
+        self.quantum_layer = QuantumCircuit(qubits, layers)
 
     def forward(self, state):
         state_vector = self.quantum_layer(state)
-        probabilities = torch.sum(torch.abs(state_vector[:, :2 ** (NUM_QUBITS - 1)]) ** 2, dim=1)
+        probabilities = torch.sum(torch.abs(state_vector[:, :2 ** (self.quantum_layer.num_qubits - 1)]) ** 2, dim=1)
         return probabilities.type(torch.float32)
 
+    def draw(self, style='default'):
+        valid_styles = {'black_white', 'black_white_dark', 'sketch', 'pennylane', 'pennylane_sketch',
+                        'sketch_dark', 'solarized_light', 'solarized_dark', 'default'}
 
-# Instantiate model
-model = FullQuantumModel()
-
-# Example of disabling gradients for specific layers
-for i in range(NUM_LAYERS):
-    if i % 2 == 0:  # Disable gradient for even layers
-        model.quantum_layer.params.data[i].requires_grad_(False)
-
-# Example usage
-initial_state = torch.rand(2 ** NUM_QUBITS)  # Random initial state
-initial_state /= torch.norm(initial_state)  # Normalize
-
-output_probabilities = model(initial_state)
-print(output_probabilities)
+        # Check if the provided style is valid
+        if style not in valid_styles:
+            raise ValueError(f"Invalid style '{style}'. Valid styles are: {', '.join(valid_styles)}")
+        qml.drawer.use_style(style)
+        fig, ax = qml.draw_mpl(self.quantum_layer.quantum_node)(self.quantum_layer.params)
+        plt.show()
