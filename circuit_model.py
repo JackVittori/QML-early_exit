@@ -2,6 +2,7 @@ import torch
 import pennylane as qml
 from torch.nn import Module
 import matplotlib.pyplot as plt
+from torch.autograd import Variable
 
 
 class QuantumCircuit(Module):
@@ -36,6 +37,7 @@ class FullQuantumModel(Module):
     def __init__(self, qubits, layers):
         super().__init__()
         self.quantum_layer = QuantumCircuit(qubits, layers)
+        self.params = self.quantum_layer.params
 
     def forward(self, state):
         state_vector = self.quantum_layer(state)
