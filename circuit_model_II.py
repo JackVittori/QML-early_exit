@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 from torch.autograd import Variable
 import warnings
 from typing import Optional, Dict, List
+from torch.utils.data import DataLoader
+from time import time
+from tqdm import tqdm
 
 
 class QuantumCircuit(Module):
@@ -70,7 +73,11 @@ class FullQuantumModel(Module):
         return iter([p for p in self.parameters() if p.requires_grad])
 
     def freeze_layers(self, layers: List[int]):
-        """Freeze specified layers from training."""
+        """Freeze specified layers from training.
+        :arg
+            layers: List of indexes of layers that has to be set to non trainable.
+
+        """
         valid_keys = list(self.params.keys())
 
         for layer in layers:
@@ -84,7 +91,12 @@ class FullQuantumModel(Module):
                 self.params[layer_name].requires_grad = False
 
     def unfreeze_layers(self, layers: List[int]):
-        """Unfreeze specified layers for training."""
+        """Unfreeze specified layers for training.
+
+        :arg
+            layers: List of indexes of layers that has to be set to trainable.
+
+        """
         valid_keys = list(self.params.keys())
 
         for layer in layers:
@@ -98,7 +110,12 @@ class FullQuantumModel(Module):
                 self.params[layer_name].requires_grad = True
 
     def draw(self, style: str = 'default'):
-        """Draws the quantum circuit with specified style."""
+        """Draws the quantum circuit with specified style.
+
+        :arg
+            style: style of drawing circuit.
+        """
+
         valid_styles = {'black_white', 'black_white_dark', 'sketch', 'pennylane', 'pennylane_sketch',
                         'sketch_dark', 'solarized_light', 'solarized_dark', 'default'}
 
@@ -108,3 +125,48 @@ class FullQuantumModel(Module):
         qml.drawer.use_style(style)
         fig, ax = qml.draw_mpl(self.quantum_layer.quantum_node)(self.quantum_layer.params)
         plt.show()
+
+    def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int,
+            loss_function: torch.nn.modules.loss = torch.nn.BCELoss()):
+        loss_history = list()
+        optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
+        avg_time_per_epoch = 0
+
+        for epoch in range(epochs):
+            t_start = time()
+
+            with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
+
+                for _, (data, targets) in tqdm_epoch:
+
+                    data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
+
+                    optimizer.zero_grad()
+
+                    output = self.forward(data)
+
+                    loss = loss_function(output, targets)
+
+                    loss.backward()
+
+                    optimizer.step()
+
+                    tqdm_epoch.set_postfix(loss=loss.item(),
+                                           accuracy=torch.sum((output > 0.5) == targets).item() / dataloader.batch_size)
+
+            avg_time_per_epoch += time() - t_start
+
+            loss_history.append(loss.item())
+
+            # print the time
+        print("Time per epoch: ", time() - t_start)
+
+            # print the loss
+        print("Epoch: ", epoch, "Loss: ", loss.item())
+
+            # print the accuracy
+        print("Accuracy: ", torch.sum((output > 0.5) == targets).item() / dataloader.batch_size)
+
+        print("--------------------------------------------------------------------------")
+
+        return avg_time_per_epoch / epochs, loss_history
