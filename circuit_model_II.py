@@ -50,7 +50,7 @@ class FullQuantumModel(Module):
 
     def forward(self, state):
         """Calculate the probability distribution from quantum state measurements."""
-        state_vector = self.quantum_layer(state)
+        state_vector = self.quantum_layer(state=state)
         probabilities = torch.sum(torch.abs(state_vector[:, :2 ** (self.quantum_layer.num_qubits - 1)]) ** 2, dim=1)
         return probabilities.type(torch.float32)
 
@@ -64,6 +64,10 @@ class FullQuantumModel(Module):
     def trainable_parameters(self):
         """Prints number of trainable parameters."""
         print("Trainable parameters:", sum(p.numel() for p in self.parameters() if p.requires_grad == True))
+
+    def get_trainable_params(self):
+        """Retrieve parameters that are marked as trainable."""
+        return iter([p for p in self.parameters() if p.requires_grad])
 
     def freeze_layers(self, layers: List[int]):
         """Freeze specified layers from training."""
