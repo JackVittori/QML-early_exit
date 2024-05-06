@@ -1,5 +1,6 @@
 import torch
 import pennylane as qml
+from pennylane.measurements import StateMP
 from torch.nn import Module
 import matplotlib.pyplot as plt
 from torch.autograd import Variable
@@ -24,7 +25,15 @@ class QuantumCircuit(Module):
         })
 
         @qml.qnode(self.dev, interface=interface)
-        def _quantum_function(params: Dict, state=None):
+        def _quantum_function(params: Dict, state: torch.Tensor) -> StateMP:
+            """
+            :param params: Dictionary of parameters to be passed to the rotational gates.
+            :param state: a tensor of shape (batch, 256) to initialize the circuit with the image (16x16).
+            :return: the output state of the quantum circuit in the computational basis
+
+            Each element of the state vector representing the quantum system is a complex number representing the
+            probability amplitude of the system being in one of the 256 = 2^8 states.
+            """
             if state is not None:
                 qml.QubitStateVector(state, wires=range(self.num_qubits))
 
@@ -51,8 +60,11 @@ class FullQuantumModel(Module):
         self.quantum_layer = QuantumCircuit(qubits, layers)
         self.params = self.quantum_layer.params
 
-    def forward(self, state):
-        """Calculate the probability distribution from quantum state measurements."""
+    def forward(self, state: torch.Tensor):
+        """Calculate the probability distribution from quantum state measurements.
+        :param state: a tensor of shape (batch, 256) to initialize the circuit with the image (16x16).
+        :return: probabiity of being 1.
+        """
         state_vector = self.quantum_layer(state=state)
         probabilities = torch.sum(torch.abs(state_vector[:, :2 ** (self.quantum_layer.num_qubits - 1)]) ** 2, dim=1)
         return probabilities.type(torch.float32)
@@ -69,14 +81,14 @@ class FullQuantumModel(Module):
         print("Trainable parameters:", sum(p.numel() for p in self.parameters() if p.requires_grad == True))
 
     def get_trainable_params(self):
-        """Retrieve parameters that are marked as trainable."""
+        """Retrieve parameters that are marked as trainable.
+        :return: iterable of parameter marked as trainable.
+        """
         return iter([p for p in self.parameters() if p.requires_grad])
 
     def freeze_layers(self, layers: List[int]):
         """Freeze specified layers from training.
-        :arg
-            layers: List of indexes of layers that has to be set to non trainable.
-
+        :param layers: List of indexes of layers to freeze.
         """
         valid_keys = list(self.params.keys())
 
@@ -93,8 +105,7 @@ class FullQuantumModel(Module):
     def unfreeze_layers(self, layers: List[int]):
         """Unfreeze specified layers for training.
 
-        :arg
-            layers: List of indexes of layers that has to be set to trainable.
+        :param layers: List of indexes of layers that has to be set to non trainable.
 
         """
         valid_keys = list(self.params.keys())
@@ -112,8 +123,7 @@ class FullQuantumModel(Module):
     def draw(self, style: str = 'default'):
         """Draws the quantum circuit with specified style.
 
-        :arg
-            style: style of drawing circuit.
+        :param style: style of drawing circuit.
         """
 
         valid_styles = {'black_white', 'black_white_dark', 'sketch', 'pennylane', 'pennylane_sketch',
@@ -127,7 +137,15 @@ class FullQuantumModel(Module):
         plt.show()
 
     def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int,
-            loss_function: torch.nn.modules.loss = torch.nn.BCELoss()):
+            loss_function: torch.nn.modules.loss = torch.nn.BCELoss()) -> tuple:
+        """
+
+        :param dataloader: dataloader with training data.
+        :param learning_rate: learning rate of the optimizer.
+        :param epochs: number of epochs.
+        :param loss_function: loss function.
+        :return: tuple containing average time per epoch and loss history.
+        """
         loss_history = list()
         optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
         avg_time_per_epoch = 0
@@ -138,7 +156,6 @@ class FullQuantumModel(Module):
             with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
 
                 for _, (data, targets) in tqdm_epoch:
-
                     data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
 
                     optimizer.zero_grad()
@@ -159,14 +176,14 @@ class FullQuantumModel(Module):
             loss_history.append(loss.item())
 
             # print the time
-        print("Time per epoch: ", time() - t_start)
+            print("Time per epoch: ", time() - t_start)
 
             # print the loss
-        print("Epoch: ", epoch, "Loss: ", loss.item())
+            print("Epoch: ", epoch, "Loss: ", loss.item())
 
             # print the accuracy
-        print("Accuracy: ", torch.sum((output > 0.5) == targets).item() / dataloader.batch_size)
+            print("Accuracy: ", torch.sum((output > 0.5) == targets).item() / dataloader.batch_size)
 
-        print("--------------------------------------------------------------------------")
+            print("--------------------------------------------------------------------------")
 
         return avg_time_per_epoch / epochs, loss_history
