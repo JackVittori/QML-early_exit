@@ -225,5 +225,3 @@ class FullQuantumModel(Module):
 
         return avg_time_per_epoch / epochs, loss_history
 
-    def fit_until(self):
-        pass
