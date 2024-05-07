@@ -25,7 +25,7 @@ class QuantumCircuit(Module):
         })
 
         @qml.qnode(self.dev, interface=interface)
-        def _quantum_function(params: Dict, state: torch.Tensor,
+        def _quantum_function(params: Dict, state: torch.Tensor = None,
                               num_layers_to_execute: Optional[int] = None) -> StateMP:
             """
             Execute the quantum circuit with specified parameters and initial state up to the given number of layers.
@@ -63,14 +63,14 @@ class QuantumCircuit(Module):
 
         :param state: a tensor of shape (batch, 256) to initialize the circuit with the image (16x16).
         :param num_layers_to_execute: The number of layers to execute.
-        :return:
+        :return: the output state of the quantum circuit in the computational basis
         """
         return self.quantum_node(params=self.params, state=state, num_layers_to_execute=num_layers_to_execute)
 
 
 class FullQuantumModel(Module):
     """
-    Full quantum model that integrates a quantum layer with measurement.
+    Full quantum model class.
     """
 
     def __init__(self, qubits: int, layers: int):
