@@ -167,15 +167,17 @@ class FullQuantumModel(Module):
 
     def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int,
             loss_function: torch.nn.modules.loss = torch.nn.BCELoss(),
-            num_layers_to_execute: Optional[int] = None) -> tuple:
+            num_layers_to_execute: Optional[int] = None, show_plot: Optional[bool] = False) -> tuple:
         """
         Train the quantum circuit given a set of training data.
 
+        :param show_plot:
         :param dataloader: dataloader with training data.
         :param learning_rate: learning rate of the optimizer.
         :param epochs: number of epochs.
         :param loss_function: loss function.
         :param num_layers_to_execute: The number of layers to execute
+        :param show_plot: If True, plot the loss during training.
         :return: tuple containing average time per epoch and loss history.
         """
 
@@ -223,5 +225,37 @@ class FullQuantumModel(Module):
 
             print("--------------------------------------------------------------------------")
 
+        if show_plot:
+            plt.style.use('seaborn-v0_8-whitegrid')
+            plt.figure(figsize=(10, 5))
+            plt.plot(list(range(epochs)), loss_history, marker='o', linestyle='-', color='b', label='Loss per Epoch')
+            plt.title('Training Loss Over Epochs', fontsize=16)
+            plt.xlabel('Epochs', fontsize=14)
+            plt.ylabel('Loss', fontsize=14)
+            plt.xticks(epochs)
+            plt.legend()
+            plt.grid(True)
+            plt.savefig('training_loss_plot.png', dpi=300)
+            plt.show()
         return avg_time_per_epoch / epochs, loss_history
+
+    def test(self, dataloader: DataLoader, loss_function: torch.nn.modules.loss = torch.nn.BCELoss(),
+                num_layers_to_execute: Optional[int] = None):
+
+        self.freeze_layers(list(range(self.num_layers)))
+
+        self.eval()
+
+        for data, targets in dataloader:
+
+            data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
+
+            output = self.forward(state=data, num_layers_to_execute=num_layers_to_execute)
+
+            loss = loss_function(output, targets)
+
+
+
+
+
 
