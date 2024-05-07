@@ -338,11 +338,13 @@ e^{- i \phi /2} & 0 \\
 
 ### 2 Qubit gates
 
-**CNOT** gate can be represented as a $`4 \times 4`$ matrix: 
+**CNOT** flips the second qubit (target) if the first qubit (control) is $`\ket{1}`$:
 
 ```math
 \text{CNOT} (\alpha \ket{0} + \beta \ket{1})\ket{0} = \alpha \ket{00} + \beta \ket{11}
 ```
+
+It can be represented as a 4x4 matrix: 
 
 ```math
  \text{CNOT} = \begin{pmatrix}
