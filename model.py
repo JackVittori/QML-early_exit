@@ -3,7 +3,6 @@ import pennylane as qml
 from pennylane.measurements import StateMP
 from torch.nn import Module
 import matplotlib.pyplot as plt
-from torch.autograd import Variable
 import warnings
 from typing import Optional, Dict, List
 from torch.utils.data import DataLoader
