@@ -87,6 +87,12 @@ class FullQuantumModel(Module):
         :param num_layers_to_execute: The number of layers to execute.
         :param state: a tensor of shape (batch, 256) to initialize the circuit with the image (16x16).
         :return: probability of being 1.
+
+        State vector have shape (batch, 256). Referring to a single image it has shape (,256), where each of the
+        elements corresponds to the amplitude of the system being in one of the 256 = 2^8 states, {|00000000>,
+        |00000001>, ..., |10111111>, |11111111>}. The first 128 are referred to states |0XXXXXXX>, thus
+        probabilities return the probability of obtaining |0> measuring the first qubit.
+
         """
         state_vector = self.quantum_layer(state=state, num_layers_to_execute=num_layers_to_execute)
         probabilities = torch.sum(torch.abs(state_vector[:, :2 ** (self.quantum_layer.num_qubits - 1)]) ** 2, dim=1)
@@ -163,6 +169,7 @@ class FullQuantumModel(Module):
             raise ValueError(f"Invalid style '{style}'. Valid styles are: {', '.join(valid_styles)}")
         qml.drawer.use_style(style)
         fig, ax = qml.draw_mpl(self.quantum_layer.quantum_node)(self.quantum_layer.params)
+
         plt.show()
 
     def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int,
@@ -171,26 +178,32 @@ class FullQuantumModel(Module):
         """
         Train the quantum circuit given a set of training data.
 
-        :param show_plot:
+        :param show_plot: if true, show the plot of the loss and the accuracy.
         :param dataloader: dataloader with training data.
         :param learning_rate: learning rate of the optimizer.
         :param epochs: number of epochs.
         :param loss_function: loss function.
         :param num_layers_to_execute: The number of layers to execute
         :param show_plot: If True, plot the loss during training.
-        :return: tuple containing average time per epoch and loss history.
+        :return: tuple containing accuracy history and loss history per epoch.
         """
 
         if num_layers_to_execute is not None:
             self.unfreeze_layers(list(range(self.num_layers)))
-            self.freeze_layers([element for element in range(self.num_layers) if element not in range(num_layers_to_execute)])
+            self.freeze_layers(
+                [element for element in range(self.num_layers) if element not in range(num_layers_to_execute)])
 
         loss_history = list()
+        accuracy = list()
         optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
         avg_time_per_epoch = 0
 
         for epoch in range(epochs):
             t_start = time()
+            running_loss = 0
+            batch_number = 0
+            predictions_per_epoch = list()
+            targets_per_epoch = list()
 
             with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
 
@@ -201,7 +214,13 @@ class FullQuantumModel(Module):
 
                     output = self.forward(state=data, num_layers_to_execute=num_layers_to_execute)
 
+                    predictions_per_epoch.append((output > 0.5))
+
+                    targets_per_epoch.append(targets)
+
                     loss = loss_function(output, targets)
+
+                    running_loss += loss.item()
 
                     loss.backward()
 
@@ -209,53 +228,67 @@ class FullQuantumModel(Module):
 
                     tqdm_epoch.set_postfix(loss=loss.item(),
                                            accuracy=torch.sum((output > 0.5) == targets).item() / dataloader.batch_size)
+                    batch_number += 1
 
             avg_time_per_epoch += time() - t_start
 
-            loss_history.append(loss.item())
+            loss_history.append(running_loss / batch_number)
+
+            predictions_per_epoch = torch.cat(predictions_per_epoch, dim=0)
+
+            targets_per_epoch = torch.cat(targets_per_epoch, dim=0)
+
+            accuracy.append(
+                torch.sum(predictions_per_epoch == targets_per_epoch).item() / (batch_number * dataloader.batch_size))
 
             # print the time
             print("Time per epoch: ", time() - t_start)
 
             # print the loss
-            print("Epoch: ", epoch, "Loss: ", loss.item())
+            print("Epoch: ", epoch, "Loss: ", loss_history[epoch])
 
             # print the accuracy
-            print("Accuracy: ", torch.sum((output > 0.5) == targets).item() / dataloader.batch_size)
+            print("Accuracy: ", accuracy[epoch])
 
             print("--------------------------------------------------------------------------")
 
         if show_plot:
-            plt.style.use('seaborn-v0_8-whitegrid')
-            plt.figure(figsize=(10, 5))
-            plt.plot(list(range(epochs)), loss_history, marker='o', linestyle='-', color='b', label='Loss per Epoch')
-            plt.title('Training Loss Over Epochs', fontsize=16)
-            plt.xlabel('Epochs', fontsize=14)
-            plt.ylabel('Loss', fontsize=14)
-            plt.xticks(epochs)
-            plt.legend()
-            plt.grid(True)
-            plt.savefig('training_loss_plot.png', dpi=300)
+            plt.style.use('ggplot')
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 5))
+
+            # Plotting the loss on the first subplot
+            ax1.plot(list(range(epochs)), loss_history, marker='o', linestyle='-', color='b', label='Loss per Epoch')
+            ax1.set_title('Training Loss Over Epochs', fontsize=16)
+            ax1.set_xlabel('Epochs', fontsize=14)
+            ax1.set_ylabel('Loss', fontsize=14)
+            ax1.set_xticks(list(range(epochs)))
+            ax1.legend()
+            ax1.grid(True)
+
+            # Plotting the accuracy on the second subplot
+            ax2.plot(list(range(epochs)), accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
+            ax2.set_title('Training Accuracy Over Epochs', fontsize=16)
+            ax2.set_xlabel('Epochs', fontsize=14)
+            ax2.set_ylabel('Accuracy', fontsize=14)
+            ax2.set_xticks(list(range(epochs)))
+            ax2.legend()
+            ax2.grid(True)
+
+            plt.tight_layout()
+            plt.savefig('training_performance_plots.png', dpi=300)
             plt.show()
-        return avg_time_per_epoch / epochs, loss_history
 
-    def test(self, dataloader: DataLoader, loss_function: torch.nn.modules.loss = torch.nn.BCELoss(),
-                num_layers_to_execute: Optional[int] = None):
+        return accuracy, loss_history
 
-        self.freeze_layers(list(range(self.num_layers)))
+    #def test(self, dataloader: DataLoader, loss_function: torch.nn.modules.loss = torch.nn.BCELoss(),
+    #num_layers_to_execute: Optional[int] = None, show_plot: Optional[bool] = False):
 
-        self.eval()
+    #self.freeze_layers(list(range(self.num_layers)))
 
-        for data, targets in dataloader:
+    #self.eval()
 
-            data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
+    #for _, (data, targets) in dataloader:
 
-            output = self.forward(state=data, num_layers_to_execute=num_layers_to_execute)
+    #data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
 
-            loss = loss_function(output, targets)
-
-
-
-
-
-
+    #output = self.forward(state=data, num_layers_to_execute=num_layers_to_execute)
