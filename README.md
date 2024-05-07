@@ -344,6 +344,15 @@ e^{- i \phi /2} & 0 \\
 \text{CNOT} (\alpha \ket{0} + \beta \ket{1})\ket{0} = \alpha \ket{00} + \beta \ket{11}
 ```
 
+```math
+ \text{CNOT} = \begin{pmatrix}
+1 & 0 & 0 & 0\\
+0 & 1 & 0 & 0\\
+0 & 0 & 0 & 1\\
+0 & 0 & 1 & 0\\
+\end{pmatrix}
+```
+
 It can be used to create entanglement. Togethere with an Hadamard gate it can be used for **Bell states generation** and for **Bell state measurement** applying the gates in reverse order, using the unitary property. For example using 00 as input the output will be the $`\ket{\phi^+}`$ state: 
 
 <p align="center">
