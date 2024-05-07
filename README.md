@@ -2,20 +2,13 @@
 A repositories that contains strategies about how to implement Early-Exit Quantum Machine Learning.
 
 ```bash
-project-root/
+QML-early_exit/
 │
-├── folder1/
-│   ├── subfolder1/
-│   │   ├── file1.txt
-│   │   └── file2.txt
-│   ├── subfolder2/
-│   │   ├── file3.txt
-│   │   └── file4.txt
-│   └── ...
+├── model.py
 │
-├── folder2/
-│   ├── ...
-│   └── ...
+├── main.ipynb
+│ 
+│   
 │
 └── ...
 ```
