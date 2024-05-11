@@ -9,11 +9,12 @@ from torch.utils.data import DataLoader
 from time import time
 from tqdm import tqdm
 
+class FullQuantumModel(Module):
+    """
+    Full quantum model class.
+    """
 
-class QuantumCircuit(Module):
-    """Quantum circuit using PennyLane and integrated with PyTorch."""
-
-    def __init__(self, num_qubits: int, num_layers: int, interface: str = 'torch'):
+    def __init__(self, num_qubits: int, num_layers: int, interface:str = 'torch'):
         super().__init__()
         self.num_qubits = num_qubits
         self.num_layers = num_layers
@@ -24,77 +25,23 @@ class QuantumCircuit(Module):
         })
 
         @qml.qnode(self.dev, interface=interface)
-        def _quantum_function(params: Dict, state: torch.Tensor = None,
-                              num_layers_to_execute: Optional[int] = None) -> StateMP:
-            """
-            Execute the quantum circuit with specified parameters and initial state up to the given number of layers.
 
-            :param num_layers_to_execute: The number of layers to execute.
-            :param params: Dictionary of parameters to be passed to the rotational gates.
-            :param state: a tensor of shape (batch, 256) to initialize the circuit with the image (16x16).
-            :return: the output state of the quantum circuit in the computational basis
+    def forward(self, state: torch.Tensor = None, num_layers_to_execute: Optional[int] = None):
+        if state is not None:
+            qml.QubitStateVector(state, wires = range(self.num_qubits))
 
-            Each element of the state vector representing the quantum system is a complex number representing the
-            probability amplitude of the system being in one of the 256 = 2^8 states. Thus, data has to be normalized
-            before being passed to the quantum circuit.
-            """
-            if state is not None:
-                # state vector initialization with input
-                qml.QubitStateVector(state, wires=range(self.num_qubits))
+        # execute only a specified number of layers or all layers
+        layers_to_execute = num_layers_to_execute if num_layers_to_execute is not None else self.num_layers
 
-            # execute only a specified number of layers or all layers
-            layers_to_execute = num_layers_to_execute if num_layers_to_execute is not None else self.num_layers
+        for i in range(layers_to_execute):
+            for j in range(self.num_qubits):
+                qml.RX(self.params[f'layer_{i}'][j, 0], wires=j)
+                qml.RY(self.params[f'layer_{i}'][j, 1], wires=j)
+                qml.RZ(self.params[f'layer_{i}'][j, 2], wires=j)
+            for j in range(self.num_qubits):
+                qml.CNOT(wires=[j, (j + 1) % self.num_qubits])
 
-            for i in range(layers_to_execute):
-                for j in range(self.num_qubits):
-                    qml.RX(params[f'layer_{i}'][j, 0], wires=j)
-                    qml.RY(params[f'layer_{i}'][j, 1], wires=j)
-                    qml.RZ(params[f'layer_{i}'][j, 2], wires=j)
-                for j in range(self.num_qubits):
-                    qml.CNOT(wires=[j, (j + 1) % self.num_qubits])
-
-            return qml.state()
-
-        self.quantum_node = _quantum_function
-
-    def forward(self, state: torch.Tensor = None, num_layers_to_execute: Optional[int] = None) -> StateMP:
-        """
-        Perform a forward pass on the quantum circuit.
-
-        :param state: a tensor of shape (batch, 256) to initialize the circuit with the image (16x16).
-        :param num_layers_to_execute: The number of layers to execute.
-        :return: the output state of the quantum circuit in the computational basis
-        """
-        return self.quantum_node(params=self.params, state=state, num_layers_to_execute=num_layers_to_execute)
-
-
-class FullQuantumModel(Module):
-    """
-    Full quantum model class.
-    """
-
-    def __init__(self, qubits: int, layers: int):
-        super().__init__()
-        self.quantum_layer = QuantumCircuit(qubits, layers)
-        self.params = self.quantum_layer.params
-        self.num_qubits = self.quantum_layer.num_qubits
-        self.num_layers = self.quantum_layer.num_layers
-
-    def forward(self, state: torch.Tensor, num_layers_to_execute: Optional[int] = None):
-        """
-        Calculate the probability distribution from quantum state measurements.
-
-        :param num_layers_to_execute: The number of layers to execute.
-        :param state: a tensor of shape (batch, 256) to initialize the circuit with the image (16x16).
-        :return: probability of being 1.
-
-        State vector have shape (batch, 256). Referring to a single image it has shape (,256), where each of the
-        elements corresponds to the amplitude of the system being in one of the 256 = 2^8 states, {|00000000>,
-        |00000001>, ..., |11111110>, |11111111>}. The first 128 are referred to states |0XXXXXXX>, thus
-        probabilities return the probability of obtaining |0> measuring the first qubit.
-
-        """
-        state_vector = self.quantum_layer(state=state, num_layers_to_execute=num_layers_to_execute)
+        state_vector = qml.state()
         probabilities = torch.sum(torch.abs(state_vector[:, :2 ** (self.quantum_layer.num_qubits - 1)]) ** 2, dim=1)
         return probabilities.type(torch.float32)
 
