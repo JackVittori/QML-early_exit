@@ -8,14 +8,19 @@ from typing import Optional, Dict, List
 from torch.utils.data import DataLoader
 from time import time
 from tqdm import tqdm
+import math
 
 class FullQuantumModel(Module):
     """
     Full quantum model class.
     """
 
-    def __init__(self, num_qubits: int, num_layers: int, interface:str = 'torch'):
+    def __init__(self, num_qubits: int, num_layers: int, interface:str = 'torch', num_classes: int):
+        """
+
+        """
         super().__init__()
+        self.required_qubits = math.ceil(math.log2(num_classes))
         self.num_qubits = num_qubits
         self.num_layers = num_layers
         self.dev = qml.device("default.qubit", wires=num_qubits)

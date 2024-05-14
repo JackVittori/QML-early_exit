@@ -1,19 +1,35 @@
 import torch
 import pennylane as qml
+from pennylane import Device
 from pennylane.measurements import StateMP
-from torch.nn import Module
+from torch.nn import Module, ParameterDict
 import matplotlib.pyplot as plt
 import warnings
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 from torch.utils.data import DataLoader
 from time import time
 from tqdm import tqdm
+import math
 
 
 class QuantumCircuit(Module):
-    """Quantum circuit using PennyLane and integrated with PyTorch."""
+    """
+    QuantumCircuit class defining quantum computation integrating Pennylane with Pytorch and containing quantum
+    circuit logic.
+    """
+    params: ParameterDict
+    dev: str | Any
+    num_layers: int
+    num_qubits: int
 
     def __init__(self, num_qubits: int, num_layers: int, interface: str = 'torch'):
+        """
+        Initialize the QuantumCircuit class.
+
+        :param num_qubits: Number of qubits in the quantum circuit.
+        :param num_layers: Number of layers in the quantum circuit.
+        :param interface: Interface to use with the quantum node. Defaults to 'torch'.
+        """
         super().__init__()
         self.num_qubits = num_qubits
         self.num_layers = num_layers
@@ -70,15 +86,29 @@ class QuantumCircuit(Module):
 
 class FullQuantumModel(Module):
     """
-    Full quantum model class.
+    FullQuantumModel builds upon QuantumCircuit class to create a trainable model and containing machine learning model
+    logic.
     """
+    quantum_layer: QuantumCircuit
+    params: ParameterDict
+    num_qubits: int
+    num_layers: int
+    classification_qubits: int
 
-    def __init__(self, qubits: int, layers: int):
+    def __init__(self, qubits: int, layers: int, num_classes: int):
+        """
+        Initialize the FullQuantumModel class.
+
+        :param qubits: Number of qubits in the quantum circuit.
+        :param layers: Number of layers in the quantum circuit.
+        :param num_classes: Number of classes in the dataset.
+        """
         super().__init__()
         self.quantum_layer = QuantumCircuit(qubits, layers)
         self.params = self.quantum_layer.params
         self.num_qubits = self.quantum_layer.num_qubits
         self.num_layers = self.quantum_layer.num_layers
+        self.classification_qubits = math.ceil(math.log2(num_classes))
 
     def forward(self, state: torch.Tensor, num_layers_to_execute: Optional[int] = None):
         """
