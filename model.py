@@ -93,6 +93,7 @@ class FullQuantumModel(Module):
     params: ParameterDict
     num_qubits: int
     num_layers: int
+    num_classes: int
     classification_qubits: int
 
     def __init__(self, qubits: int, layers: int, num_classes: int):
@@ -108,7 +109,10 @@ class FullQuantumModel(Module):
         self.params = self.quantum_layer.params
         self.num_qubits = self.quantum_layer.num_qubits
         self.num_layers = self.quantum_layer.num_layers
+        self.num_classes = num_classes
         self.classification_qubits = math.ceil(math.log2(num_classes))
+        if self.classification_qubits > self.num_qubits:
+            raise ValueError(f"Number of qubits must be at least equal to {self.classification_qubits}")
 
     def forward(self, state: torch.Tensor, num_layers_to_execute: Optional[int] = None):
         """
@@ -120,12 +124,36 @@ class FullQuantumModel(Module):
 
         State vector have shape (batch, 256). Referring to a single image it has shape (,256), where each of the
         elements corresponds to the amplitude of the system being in one of the 256 = 2^8 states, {|00000000>,
-        |00000001>, ..., |11111110>, |11111111>}. The first 128 are referred to states |0XXXXXXX>, thus
-        probabilities return the probability of obtaining |0> measuring the first qubit.
+        |00000001>, ..., |11111110>, |11111111>}. The first 128 are referred to states |0XXXXXXX>, meaning that if
+        the classes are 2 forward pass return the probabilities to be in one of the first 128 states. If the classes
+        are greater than 2, the total number of possible states is calculated with the classification qubits, then
+        the 256 states are divided in groups each one associated to a class. If the number of class n is lower than the
+        groups only the first n groups are considered.
+
+        Example 1: 3 classes -> 2 classification qubits = 4 possible states |00>, |01>, |10>, |11>, but only the first
+        three are considered.
+        Example 2: 4 classes -> 2 classification qubits = 4 possible states |00>, |01>, |10>, |11> each one associated
+        to a class.
+        Example 3: 5 classes -> 3 classification qubits = 8 possible states |000>, |001>, |010>, |011>, |100>, |101>,
+        |110>, |111>, |111>, but only the first 5 are considered.
 
         """
+        if self.num_classes == 2:
+            state_vector = self.quantum_layer(state=state, num_layers_to_execute=num_layers_to_execute)
+            probabilities = torch.sum(torch.abs(state_vector[:, :2 ** (self.quantum_layer.num_qubits - 1)]) ** 2, dim=1)
+            return probabilities.type(torch.float32)
+
         state_vector = self.quantum_layer(state=state, num_layers_to_execute=num_layers_to_execute)
-        probabilities = torch.sum(torch.abs(state_vector[:, :2 ** (self.quantum_layer.num_qubits - 1)]) ** 2, dim=1)
+        total_states = 2 ** self.classification_qubits
+
+        probabilities = torch.zeros(state_vector.shape[0], self.num_classes, dtype=torch.float32)
+
+        for idx in range(self.num_classes):
+            # Calculate the index range for each class
+            start_idx = int(idx * (2 ** self.num_qubits / total_states))
+            end_idx = int((idx + 1) * (2 ** self.num_qubits / total_states))
+            probabilities[:, idx] = torch.sum(torch.abs(state_vector[:, start_idx:end_idx]) ** 2, dim=1)
+
         return probabilities.type(torch.float32)
 
     def trainable_layers(self):
