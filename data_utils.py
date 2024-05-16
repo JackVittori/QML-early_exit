@@ -42,7 +42,10 @@ def mnist_preparation(dataset: datasets.MNIST, labels: List[int], train_test_rat
     data = normalize(data)
     data = data.flatten(start_dim=1)
     targets = torch.tensor(targets)
-    targets = targets.type(torch.float32)
+
+    if len(labels) == 2:
+        targets = targets.type(torch.float32)
+
     dataset = TensorDataset(data, targets)
 
     train_size = int(train_test_ratio * len(dataset))

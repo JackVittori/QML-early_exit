@@ -235,7 +235,8 @@ class FullQuantumModel(Module):
             num_layers_to_execute: Optional[int] = None, show_plot: Optional[bool] = False) -> tuple:
         """
         Train the quantum circuit given a set of training data. The loss function is considered to be the Binary
-        Cross Entropy Loss for binary classification and Negative Log Likelihood for multinomial classification.
+        Cross Entropy Loss for binary classification, Negative Log Likelihood when all the states are used, meaning
+        that the output are probabilities, CrossEntropyLoss when not all the states are used.
 
         :param show_plot: if true, show the plot of the loss and the accuracy.
         :param dataloader: dataloader with training data.
@@ -251,8 +252,11 @@ class FullQuantumModel(Module):
             if self.num_classes == 2:
                 loss_function = torch.nn.BCELoss()  # binary cross entropy for binary classification
 
-            else:
+            elif 2 ** self.classification_qubits == self.num_classes:  #output are probabilities
                 loss_function = torch.nn.NLLLoss()  # Negative Log Likelihood for multinomial classification
+
+            else:  #outputs can be considered as logits
+                loss_function = torch.nn.CrossEntropyLoss()
 
         if num_layers_to_execute is not None:
             self.unfreeze_layers(list(range(self.num_layers)))
@@ -267,24 +271,38 @@ class FullQuantumModel(Module):
         for epoch in range(epochs):
             t_start = time()
             running_loss = 0
-            predictions_per_epoch = list()
+            accuracy_per_epoch = list()
             targets_per_epoch = list()
 
             with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
 
                 for _, (data, targets) in tqdm_epoch:
+
                     data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
 
                     optimizer.zero_grad()
 
                     output = self.forward(state=data, num_layers_to_execute=num_layers_to_execute)
 
-                    if self.num_classes == 2:
+                    if self.num_classes == 2:  #binary classification -> BinaryCrossEntropy
 
-                        predictions_per_epoch.append((output > 0.5))
+                        batch_accuracy = torch.sum((output > 0.5) == targets).item() / len(output)
+                        accuracy_per_epoch.append(batch_accuracy)
+                        loss = loss_function(output, targets)
 
-                        targets_per_epoch.append(targets)
+                    elif 2 ** self.classification_qubits == self.num_classes:  #output == probabilities -> NegativeLogLik
 
+                        predictions = torch.argmax(output, dim=1)
+                        batch_accuracy = torch.sum(predictions == targets).item() / len(predictions)
+                        accuracy_per_epoch.append(batch_accuracy)
+                        log_probs = torch.log(output)
+                        loss = loss_function(log_probs, targets)
+
+                    else:  #output can be considered logits -> CrossEntropyLoss
+
+                        predictions = torch.argmax(output, dim=1)
+                        batch_accuracy = torch.sum(predictions == targets).item() / len(predictions)
+                        accuracy_per_epoch.append(batch_accuracy)
                         loss = loss_function(output, targets)
 
                     running_loss += loss.item()
@@ -294,24 +312,19 @@ class FullQuantumModel(Module):
                     optimizer.step()
 
                     tqdm_epoch.set_postfix(loss=loss.item(),
-                                           accuracy=torch.sum((output > 0.5) == targets).item() / len(output))
+                                           accuracy=batch_accuracy)
 
             avg_time_per_epoch += time() - t_start
 
             loss_history.append(running_loss / len(dataloader))
 
-            predictions_per_epoch = torch.cat(predictions_per_epoch, dim=0)
-
-            targets_per_epoch = torch.cat(targets_per_epoch, dim=0)
-
-            accuracy.append(
-                torch.sum(predictions_per_epoch == targets_per_epoch).item() / len(predictions_per_epoch))
+            accuracy.append(sum(accuracy_per_epoch)/len(accuracy_per_epoch))
 
             # print the time
             print("Time per epoch: ", time() - t_start)
 
             # print the loss
-            print("Epoch: ", epoch, "Loss: ", loss_history[epoch])
+            print("Epoch: ", epoch + 1, "Loss: ", loss_history[epoch])
 
             # print the accuracy
             print("Accuracy: ", accuracy[epoch])
