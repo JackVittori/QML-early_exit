@@ -231,10 +231,11 @@ class FullQuantumModel(Module):
         plt.show()
 
     def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int,
-            loss_function: torch.nn.modules.loss = torch.nn.BCELoss(),
+            loss_function: Optional[torch.nn.modules.loss] = None,
             num_layers_to_execute: Optional[int] = None, show_plot: Optional[bool] = False) -> tuple:
         """
-        Train the quantum circuit given a set of training data.
+        Train the quantum circuit given a set of training data. The loss function is considered to be the Binary
+        Cross Entropy Loss for binary classification and Negative Log Likelihood for multinomial classification.
 
         :param show_plot: if true, show the plot of the loss and the accuracy.
         :param dataloader: dataloader with training data.
@@ -245,6 +246,13 @@ class FullQuantumModel(Module):
         :param show_plot: If True, plot the loss during training.
         :return: tuple containing accuracy history and loss history per epoch.
         """
+
+        if loss_function is None:
+            if self.num_classes == 2:
+                loss_function = torch.nn.BCELoss()  # binary cross entropy for binary classification
+
+            else:
+                loss_function = torch.nn.NLLLoss()  # Negative Log Likelihood for multinomial classification
 
         if num_layers_to_execute is not None:
             self.unfreeze_layers(list(range(self.num_layers)))
@@ -271,11 +279,13 @@ class FullQuantumModel(Module):
 
                     output = self.forward(state=data, num_layers_to_execute=num_layers_to_execute)
 
-                    predictions_per_epoch.append((output > 0.5))
+                    if self.num_classes == 2:
 
-                    targets_per_epoch.append(targets)
+                        predictions_per_epoch.append((output > 0.5))
 
-                    loss = loss_function(output, targets)
+                        targets_per_epoch.append(targets)
+
+                        loss = loss_function(output, targets)
 
                     running_loss += loss.item()
 
