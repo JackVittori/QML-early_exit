@@ -18,7 +18,7 @@ class QuantumCircuit(Module):
     circuit logic.
     """
     params: ParameterDict
-    dev: str | Any
+    dev: Device
     num_layers: int
     num_qubits: int
 
@@ -290,7 +290,7 @@ class FullQuantumModel(Module):
                         accuracy_per_epoch.append(batch_accuracy)
                         loss = loss_function(output, targets)
 
-                    elif 2 ** self.classification_qubits == self.num_classes:  #output == probabilities -> NegativeLogLik
+                    elif 2 ** self.classification_qubits == self.num_classes:  #output are probabilities->NegativeLogLik
 
                         predictions = torch.argmax(output, dim=1)
                         batch_accuracy = torch.sum(predictions == targets).item() / len(predictions)
@@ -359,15 +359,3 @@ class FullQuantumModel(Module):
 
         return accuracy, loss_history
 
-    #def test(self, dataloader: DataLoader, loss_function: torch.nn.modules.loss = torch.nn.BCELoss(),
-    #num_layers_to_execute: Optional[int] = None, show_plot: Optional[bool] = False):
-
-    #self.freeze_layers(list(range(self.num_layers)))
-
-    #self.eval()
-
-    #for _, (data, targets) in dataloader:
-
-    #data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
-
-    #output = self.forward(state=data, num_layers_to_execute=num_layers_to_execute)
