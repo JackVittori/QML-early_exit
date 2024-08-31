@@ -272,7 +272,6 @@ class FullQuantumModel(Module):
             t_start = time()
             running_loss = 0
             accuracy_per_epoch = list()
-            targets_per_epoch = list()
 
             with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
 
