@@ -17,7 +17,7 @@ from torch.utils.data import DataLoader, dataloader
 from time import time
 import math
 from pennylane.measurements import MidMeasureMP
-
+from evaluationUtils import early_evaluation, circuit_early_evaluation, full_evaluation, full_evaluation_circuit
 
 class MCMCircuit(Module):
     """
@@ -293,22 +293,23 @@ class MCMQuantumModel(Module):
             fm_accuracy.append(sum(fm_accuracy_per_epoch) / len(fm_accuracy_per_epoch))
 
             # print the time
-            print("Time per epoch: ", time() - t_start)
+            print("Time per epoch (s): ", time() - t_start)
 
             # print the loss
             print("Epoch: ", epoch + 1, "Loss: ", loss_history[epoch])
 
+            print("--------------------------------------------------------------------------")
             # print the accuracy
-            print("Mid circuit accuracy: ", accuracy[epoch])
+            print("Mid circuit accuracy: ", mcm_accuracy[epoch])
 
             print("--------------------------------------------------------------------------")
-            print("Final Measurement accuracy: ", accuracy[epoch])
+            print("Final Measurement accuracy: ", fm_accuracy[epoch])
 
             print("--------------------------------------------------------------------------")
 
         if show_plot:
             plt.style.use('ggplot')
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 5))
+            fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 5))
 
             # Plotting the loss on the first subplot
             ax1.plot(list(range(epochs)), loss_history, marker='o', linestyle='-', color='b', label='Loss per Epoch')
@@ -320,16 +321,52 @@ class MCMQuantumModel(Module):
             ax1.grid(True)
 
             # Plotting the accuracy on the second subplot
-            ax2.plot(list(range(epochs)), accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
-            ax2.set_title('Training Accuracy Over Epochs', fontsize=16)
+            ax2.plot(list(range(epochs)), mcm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
+            ax2.set_title('Early Exit Training Accuracy Over Epochs', fontsize=16)
             ax2.set_xlabel('Epochs', fontsize=14)
             ax2.set_ylabel('Accuracy', fontsize=14)
             ax2.set_xticks(list(range(epochs)))
             ax2.legend()
             ax2.grid(True)
 
+            ax2.plot(list(range(epochs)), fm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
+            ax2.set_title('Final circuit Training Accuracy Over Epochs', fontsize=16)
+            ax2.set_xlabel('Epochs', fontsize=14)
+            ax2.set_ylabel('Accuracy', fontsize=14)
+            ax2.set_xticks(list(range(epochs)))
+            ax2.legend()
+            ax2.grid(True)
+
+
             plt.tight_layout()
             plt.savefig('training_performance_plots.png', dpi=300)
             plt.show()
 
         return mcm_accuracy, fm_accuracy, loss_history
+
+    def evaluate(self, dataloader: DataLoader, threshold: float):
+
+        params = self.params
+        results = {
+            'early': [],
+            'final': []
+        }
+        total = len(dataloader.dataset)
+
+        with tqdm(total=total, desc="Progress", unit="iter") as pbar:
+            for idx, (img, label) in enumerate(dataloader.dataset):
+                img = img / torch.linalg.norm(img).view(-1, 1)
+                early_probs = circuit_early_evaluation(parameters=params, state=img)
+                early_prediction = torch.argmax(early_probs)
+                early_confidence = early_probs[torch.argmax(early_probs)].item()
+
+                if early_confidence > threshold:
+                    results['early'].append((early_prediction, label))
+                else:
+                    final_probs = full_evaluation_circuit(parameters=params, state=img)
+                    final_prediction = torch.argmax(final_probs)
+                    results['final'].append((final_prediction, label))
+                # Aggiorna la progress bar ad ogni iterazione
+                pbar.update(1)
+
+        return results
