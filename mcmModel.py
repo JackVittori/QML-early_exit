@@ -111,7 +111,7 @@ class MCMCircuit(Module):
 
 class MCMQuantumModel(Module):
     quantum_layer: MCMCircuit
-    parameters: ParameterDict
+    params: ParameterDict
     num_qubits: int
     num_layers: int
     num_shots: int
@@ -121,7 +121,7 @@ class MCMQuantumModel(Module):
 
         super().__init__()
         self.quantum_layer = MCMCircuit(qubits, layers, shots, ansatz)
-        self.parameters = self.quantum_layer.params
+        self.params = self.quantum_layer.params
         self.num_qubits = self.quantum_layer.num_qubits
         self.num_layers = self.quantum_layer.num_layers
         self.num_shots = self.quantum_layer.num_shots
@@ -164,7 +164,7 @@ class MCMQuantumModel(Module):
 
     def trainable_layers(self):
         trainable_layers = dict()
-        for layer in list(self.parameters.keys()):
+        for layer in list(self.params.keys()):
             trainable_layers[layer] = self.params[layer].requires_grad
         print(trainable_layers)
 
