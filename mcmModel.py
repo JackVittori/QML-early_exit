@@ -329,13 +329,13 @@ class MCMQuantumModel(Module):
             ax2.legend()
             ax2.grid(True)
 
-            ax2.plot(list(range(epochs)), fm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
-            ax2.set_title('Final circuit Training Accuracy Over Epochs', fontsize=16)
-            ax2.set_xlabel('Epochs', fontsize=14)
-            ax2.set_ylabel('Accuracy', fontsize=14)
-            ax2.set_xticks(list(range(epochs)))
-            ax2.legend()
-            ax2.grid(True)
+            ax3.plot(list(range(epochs)), fm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
+            ax3.set_title('Final circuit Training Accuracy Over Epochs', fontsize=16)
+            ax3.set_xlabel('Epochs', fontsize=14)
+            ax3.set_ylabel('Accuracy', fontsize=14)
+            ax3.set_xticks(list(range(epochs)))
+            ax3.legend()
+            ax3.grid(True)
 
 
             plt.tight_layout()
@@ -366,7 +366,6 @@ class MCMQuantumModel(Module):
                     final_probs = full_evaluation_circuit(parameters=params, state=img)
                     final_prediction = torch.argmax(final_probs)
                     results['final'].append((final_prediction, label))
-                # Aggiorna la progress bar ad ogni iterazione
                 pbar.update(1)
 
         return results

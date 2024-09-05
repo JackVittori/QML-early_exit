@@ -227,7 +227,6 @@ class FullQuantumModel(Module):
             raise ValueError(f"Invalid style '{style}'. Valid styles are: {', '.join(valid_styles)}")
         qml.drawer.use_style(style)
         fig, ax = qml.draw_mpl(self.quantum_layer.quantum_node)(self.quantum_layer.params)
-
         plt.show()
 
     def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int,
