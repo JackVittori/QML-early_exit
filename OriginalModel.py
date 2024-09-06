@@ -212,7 +212,7 @@ class FullQuantumModel(Module):
             else:
                 self.params[layer_name].requires_grad = True
 
-    def draw(self, style: str = 'default'):
+    def draw(self, style: str = 'default', save: bool = True):
         """
         Draw the quantum circuit with specified style.
 
@@ -228,6 +228,8 @@ class FullQuantumModel(Module):
         qml.drawer.use_style(style)
         fig, ax = qml.draw_mpl(self.quantum_layer.quantum_node)(self.quantum_layer.params)
         plt.show()
+        if save:
+            fig.savefig('/Users/jackvittori/Desktop/QML-early_exit/mcm_model.png')
 
     def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int,
             loss_function: Optional[torch.nn.modules.loss] = None,

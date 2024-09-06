@@ -50,7 +50,7 @@ def early_evaluation(parameters: Dict, state: torch.Tensor = None):
     return mcms
 
 
-dev = qml.device("default.qubit", shots=20)
+dev = qml.device("default.qubit", shots=50)
 
 
 @qml.qnode(dev)
@@ -88,7 +88,7 @@ def full_evaluation(parameters: Dict, state: torch.Tensor = None):
     return mcms
 
 
-dev = qml.device("default.qubit", shots=20)
+dev = qml.device("default.qubit", shots=50)
 
 
 @qml.qnode(dev)
