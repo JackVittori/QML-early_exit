@@ -99,10 +99,39 @@ class MCMCircuit(Module):
 
             return mcm
 
+        def _binary_quantum_function(params: Dict, state: torch.Tensor = None):
+            mcasurements = []
+            if state is not None:
+                # state vector initialization with input
+                qml.QubitStateVector(state, wires=range(self.num_qubits))
+            for i in range(4):
+                for j in range(num_qubits):
+                    qml.RX(params[f'layer_{i}'][j, 0], wires=j)
+                    qml.RY(params[f'layer_{i}'][j, 1], wires=j)
+                    qml.RZ(params[f'layer_{i}'][j, 2], wires=j)
+                for j in range(num_qubits):
+                    qml.CNOT(wires=[j, (j + 1) % num_qubits])
+
+            mcasurements.append(qml.measure(wires=0)) #measure first qubit
+
+            for i in range(4, num_layers):
+                for j in range(num_qubits):
+                    qml.RX(params[f'layer_{i}'][j, 0], wires=j)
+                    qml.RY(params[f'layer_{i}'][j, 1], wires=j)
+                    qml.RZ(params[f'layer_{i}'][j, 2], wires=j)
+                for j in range(num_qubits):
+                    qml.CNOT(wires=[j, (j + 1) % num_qubits])
+
+            mcasurements.append(qml.measure(wires=1)) #measure second qubit
+
+            return mcasurements
+
         if ansatz == 'ansatz_1':
             self.quantum_node = _quantum_function
-        else:
+        elif ansatz == 'ansatz_2':
             self.quantum_node = _quantum_function_2
+        elif ansatz == '2-class':
+            self.quantum_node = _binary_quantum_function
 
     def forward(self, state: torch.Tensor = None):
 
@@ -151,8 +180,17 @@ class MCMQuantumModel(Module):
             self.quantum_node = _qnode_2
             self.ansatz = "Ansatz_2"
 
+        elif ansatz == '2-class':
+            @qml.qnode(device=self.dev, interface='torch')
+            def _qnode_3(state: torch.Tensor):
+                measurements = self.quantum_layer(state=state)
+                mid_measurement, final_measurement = measurements
+                return qml.probs(op=mid_measurement), qml.probs(op=final_measurement)
+            self.quantum_node = _qnode_3
+            self.ansatz = '2-class'
+
         else:
-            raise ValueError("Please indicate an ansatz between 'ansatz_1' and 'ansatz_2'")
+            raise ValueError("Please indicate an ansatz between 'ansatz_1', 'ansatz_2', '2-class'")
 
     def ansatz(self):
 
@@ -213,7 +251,7 @@ class MCMQuantumModel(Module):
             else:
                 self.params[layer_name].requires_grad = True
 
-    def draw(self, style: str = 'default'):
+    def draw(self, style: str = 'default', path: Optional[str] = None):
         """
         Draw the quantum circuit with specified style.
 
@@ -227,122 +265,234 @@ class MCMQuantumModel(Module):
         if style not in valid_styles:
             raise ValueError(f"Invalid style '{style}'. Valid styles are: {', '.join(valid_styles)}")
         qml.drawer.use_style(style)
-        fig, ax = qml.draw_mpl(self.quantum_layer.quantum_node)(self.quantum_layer.params)
+        fig, ax = qml.draw_mpl(self.quantum_node)(state=None)
 
         plt.show()
+        if path is not None:
+            fig.savefig(path)
 
     def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int,
             show_plot: Optional[bool] = False) -> tuple:
 
-        mcm_loss_function = torch.nn.NLLLoss()  # Negative Log Likelihood for multinomial classification
-        fm_loss_function = torch.nn.NLLLoss()
-        loss_history = list()
-        mcm_accuracy = list()
-        fm_accuracy = list()
-        optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
-        avg_time_per_epoch = 0
+        if self.ansatz == '2-class':
+            mcm_loss_function = torch.nn.BCELoss()
+            fm_loss_function = torch.nn.BCELoss()
+            loss_history = list()
+            mcm_accuracy = list()
+            fm_accuracy = list()
+            optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
+            avg_time_per_epoch = 0
 
-        for epoch in range(epochs):
-            t_start = time()
-            running_loss = 0
-            mcm_accuracy_per_epoch = list()
-            fm_accuracy_per_epoch = list()
+            for epoch in range(epochs):
+                t_start = time()
+                running_loss = 0
+                mcm_accuracy_per_epoch = list()
+                fm_accuracy_per_epoch = list()
 
-            with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
+                with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
 
-                for _, (data, targets) in tqdm_epoch:
-                    data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
+                    for _, (data, targets) in tqdm_epoch:
+                        data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
 
-                    optimizer.zero_grad()
+                        optimizer.zero_grad()
 
-                    mcm_probs, final_probs = self.forward(state=data)
+                        mcm_probs, final_probs = self.forward(state=data)
 
-                    # mcm computation
-                    mcm_predictions = torch.argmax(mcm_probs, dim=1)
+                        # mcm computation
+                        mcm_predictions = torch.argmax(mcm_probs, dim=1)
+                        mcm_batch_accuracy = torch.sum(mcm_predictions == targets).item() / len(mcm_predictions)
+                        mcm_accuracy_per_epoch.append(mcm_batch_accuracy)
+                        mcm_positive_probs = mcm_probs[:,1]
+                        mcm_loss = mcm_loss_function(mcm_positive_probs, targets)
 
-                    mcm_batch_accuracy = torch.sum(mcm_predictions == targets).item() / len(mcm_predictions)
+                        # fm computation
+                        fm_predictions = torch.argmax(final_probs, dim=1)
+                        fm_batch_accuracy = torch.sum(fm_predictions == targets).item() / len(fm_predictions)
+                        fm_accuracy_per_epoch.append(fm_batch_accuracy)
+                        fm_positive_probs = final_probs[:,1]
+                        fm_loss = fm_loss_function(fm_positive_probs, targets)
 
-                    mcm_accuracy_per_epoch.append(mcm_batch_accuracy)
-                    mcm_log_probs = torch.log(mcm_probs)
-                    mcm_loss = mcm_loss_function(mcm_log_probs, targets)
+                        # total loss
+                        loss = mcm_loss + fm_loss
 
-                    # fm computation
-                    fm_predictions = torch.argmax(final_probs, dim=1)
-                    fm_batch_accuracy = torch.sum(fm_predictions == targets).item() / len(fm_predictions)
-                    fm_accuracy_per_epoch.append(fm_batch_accuracy)
-                    fm_log_probs = torch.log(final_probs)
-                    fm_loss = fm_loss_function(fm_log_probs, targets)
+                        running_loss += loss.item()
 
-                    # total loss
-                    loss = mcm_loss + fm_loss
+                        loss.backward()
 
-                    running_loss += loss.item()
+                        optimizer.step()
 
-                    loss.backward()
+                        tqdm_epoch.set_postfix(loss=loss.item(),
+                                               mcm_accuracy=mcm_batch_accuracy, fm_accuracy=fm_batch_accuracy)
 
-                    optimizer.step()
+                avg_time_per_epoch += time() - t_start
 
-                    tqdm_epoch.set_postfix(loss=loss.item(),
-                                           mcm_accuracy=mcm_batch_accuracy, fm_accuracy=fm_batch_accuracy)
+                loss_history.append(running_loss / len(dataloader))
 
-            avg_time_per_epoch += time() - t_start
+                mcm_accuracy.append(sum(mcm_accuracy_per_epoch) / len(mcm_accuracy_per_epoch))
+                fm_accuracy.append(sum(fm_accuracy_per_epoch) / len(fm_accuracy_per_epoch))
 
-            loss_history.append(running_loss / len(dataloader))
+                # print the time
+                print("Time per epoch (s): ", time() - t_start)
 
-            mcm_accuracy.append(sum(mcm_accuracy_per_epoch) / len(mcm_accuracy_per_epoch))
-            fm_accuracy.append(sum(fm_accuracy_per_epoch) / len(fm_accuracy_per_epoch))
+                # print the loss
+                print("Epoch: ", epoch + 1, "Loss: ", loss_history[epoch])
 
-            # print the time
-            print("Time per epoch (s): ", time() - t_start)
+                print("--------------------------------------------------------------------------")
+                # print the accuracy
+                print("Mid circuit accuracy: ", mcm_accuracy[epoch])
 
-            # print the loss
-            print("Epoch: ", epoch + 1, "Loss: ", loss_history[epoch])
+                print("--------------------------------------------------------------------------")
+                print("Final Measurement accuracy: ", fm_accuracy[epoch])
 
-            print("--------------------------------------------------------------------------")
-            # print the accuracy
-            print("Mid circuit accuracy: ", mcm_accuracy[epoch])
+                print("--------------------------------------------------------------------------")
 
-            print("--------------------------------------------------------------------------")
-            print("Final Measurement accuracy: ", fm_accuracy[epoch])
+            if show_plot:
+                plt.style.use('ggplot')
+                fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 5))
 
-            print("--------------------------------------------------------------------------")
+                # Plotting the loss on the first subplot
+                ax1.plot(list(range(epochs)), loss_history, marker='o', linestyle='-', color='b', label='Loss per Epoch')
+                ax1.set_title('Training Loss Over Epochs', fontsize=16)
+                ax1.set_xlabel('Epochs', fontsize=14)
+                ax1.set_ylabel('Loss', fontsize=14)
+                ax1.set_xticks(list(range(epochs)))
+                ax1.legend()
+                ax1.grid(True)
 
-        if show_plot:
-            plt.style.use('ggplot')
-            fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 5))
+                # Plotting the accuracy on the second subplot
+                ax2.plot(list(range(epochs)), mcm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
+                ax2.set_title('Early Exit Training Accuracy Over Epochs', fontsize=16)
+                ax2.set_xlabel('Epochs', fontsize=14)
+                ax2.set_ylabel('Accuracy', fontsize=14)
+                ax2.set_xticks(list(range(epochs)))
+                ax2.legend()
+                ax2.grid(True)
 
-            # Plotting the loss on the first subplot
-            ax1.plot(list(range(epochs)), loss_history, marker='o', linestyle='-', color='b', label='Loss per Epoch')
-            ax1.set_title('Training Loss Over Epochs', fontsize=16)
-            ax1.set_xlabel('Epochs', fontsize=14)
-            ax1.set_ylabel('Loss', fontsize=14)
-            ax1.set_xticks(list(range(epochs)))
-            ax1.legend()
-            ax1.grid(True)
-
-            # Plotting the accuracy on the second subplot
-            ax2.plot(list(range(epochs)), mcm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
-            ax2.set_title('Early Exit Training Accuracy Over Epochs', fontsize=16)
-            ax2.set_xlabel('Epochs', fontsize=14)
-            ax2.set_ylabel('Accuracy', fontsize=14)
-            ax2.set_xticks(list(range(epochs)))
-            ax2.legend()
-            ax2.grid(True)
-
-            ax3.plot(list(range(epochs)), fm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
-            ax3.set_title('Final circuit Training Accuracy Over Epochs', fontsize=16)
-            ax3.set_xlabel('Epochs', fontsize=14)
-            ax3.set_ylabel('Accuracy', fontsize=14)
-            ax3.set_xticks(list(range(epochs)))
-            ax3.legend()
-            ax3.grid(True)
+                ax3.plot(list(range(epochs)), fm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
+                ax3.set_title('Final circuit Training Accuracy Over Epochs', fontsize=16)
+                ax3.set_xlabel('Epochs', fontsize=14)
+                ax3.set_ylabel('Accuracy', fontsize=14)
+                ax3.set_xticks(list(range(epochs)))
+                ax3.legend()
+                ax3.grid(True)
 
 
-            plt.tight_layout()
-            plt.savefig('training_performance_plots.png', dpi=300)
-            plt.show()
+                plt.tight_layout()
+                plt.savefig('training_performance_plots.png', dpi=300)
+                plt.show()
 
-        return mcm_accuracy, fm_accuracy, loss_history
+            return mcm_accuracy, fm_accuracy, loss_history
+
+        else:
+            mcm_loss_function = torch.nn.NLLLoss()  # Negative Log Likelihood for multinomial classification
+            fm_loss_function = torch.nn.NLLLoss()
+            loss_history = list()
+            mcm_accuracy = list()
+            fm_accuracy = list()
+            optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
+            avg_time_per_epoch = 0
+
+            for epoch in range(epochs):
+                t_start = time()
+                running_loss = 0
+                mcm_accuracy_per_epoch = list()
+                fm_accuracy_per_epoch = list()
+
+                with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
+
+                    for _, (data, targets) in tqdm_epoch:
+                        data = data / torch.linalg.norm(data, dim=1).view(-1, 1)
+
+                        optimizer.zero_grad()
+
+                        mcm_probs, final_probs = self.forward(state=data)
+
+                        # mcm computation
+                        mcm_predictions = torch.argmax(mcm_probs, dim=1)
+
+                        mcm_batch_accuracy = torch.sum(mcm_predictions == targets).item() / len(mcm_predictions)
+
+                        mcm_accuracy_per_epoch.append(mcm_batch_accuracy)
+                        mcm_log_probs = torch.log(mcm_probs)
+                        mcm_loss = mcm_loss_function(mcm_log_probs, targets)
+
+                        # fm computation
+                        fm_predictions = torch.argmax(final_probs, dim=1)
+                        fm_batch_accuracy = torch.sum(fm_predictions == targets).item() / len(fm_predictions)
+                        fm_accuracy_per_epoch.append(fm_batch_accuracy)
+                        fm_log_probs = torch.log(final_probs)
+                        fm_loss = fm_loss_function(fm_log_probs, targets)
+
+                        # total loss
+                        loss = mcm_loss + fm_loss
+
+                        running_loss += loss.item()
+
+                        loss.backward()
+
+                        optimizer.step()
+
+                        tqdm_epoch.set_postfix(loss=loss.item(),
+                                               mcm_accuracy=mcm_batch_accuracy, fm_accuracy=fm_batch_accuracy)
+
+                avg_time_per_epoch += time() - t_start
+
+                loss_history.append(running_loss / len(dataloader))
+
+                mcm_accuracy.append(sum(mcm_accuracy_per_epoch) / len(mcm_accuracy_per_epoch))
+                fm_accuracy.append(sum(fm_accuracy_per_epoch) / len(fm_accuracy_per_epoch))
+
+                # print the time
+                print("Time per epoch (s): ", time() - t_start)
+
+                # print the loss
+                print("Epoch: ", epoch + 1, "Loss: ", loss_history[epoch])
+
+                print("--------------------------------------------------------------------------")
+                # print the accuracy
+                print("Mid circuit accuracy: ", mcm_accuracy[epoch])
+
+                print("--------------------------------------------------------------------------")
+                print("Final Measurement accuracy: ", fm_accuracy[epoch])
+
+                print("--------------------------------------------------------------------------")
+
+            if show_plot:
+                plt.style.use('ggplot')
+                fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 5))
+
+                # Plotting the loss on the first subplot
+                ax1.plot(list(range(epochs)), loss_history, marker='o', linestyle='-', color='b', label='Loss per Epoch')
+                ax1.set_title('Training Loss Over Epochs', fontsize=16)
+                ax1.set_xlabel('Epochs', fontsize=14)
+                ax1.set_ylabel('Loss', fontsize=14)
+                ax1.set_xticks(list(range(epochs)))
+                ax1.legend()
+                ax1.grid(True)
+
+                # Plotting the accuracy on the second subplot
+                ax2.plot(list(range(epochs)), mcm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
+                ax2.set_title('Early Exit Training Accuracy Over Epochs', fontsize=16)
+                ax2.set_xlabel('Epochs', fontsize=14)
+                ax2.set_ylabel('Accuracy', fontsize=14)
+                ax2.set_xticks(list(range(epochs)))
+                ax2.legend()
+                ax2.grid(True)
+
+                ax3.plot(list(range(epochs)), fm_accuracy, marker='x', linestyle='--', color='r', label='Accuracy per Epoch')
+                ax3.set_title('Final circuit Training Accuracy Over Epochs', fontsize=16)
+                ax3.set_xlabel('Epochs', fontsize=14)
+                ax3.set_ylabel('Accuracy', fontsize=14)
+                ax3.set_xticks(list(range(epochs)))
+                ax3.legend()
+                ax3.grid(True)
+
+
+                plt.tight_layout()
+                plt.savefig('training_performance_plots.png', dpi=300)
+                plt.show()
+
+            return mcm_accuracy, fm_accuracy, loss_history
 
     def evaluate(self, dataloader: DataLoader, threshold: float):
 
