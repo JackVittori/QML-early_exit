@@ -73,32 +73,6 @@ class MCMCircuit(Module):
 
             return mcms
 
-        def _quantum_function_2(params: Dict, state: torch.Tensor = None):
-            first_pair = [0, 1]
-
-            if state is not None:
-                # state vector initialization with input
-                qml.QubitStateVector(state, wires=range(self.num_qubits))
-
-            for i in range(4):
-                for j in range(num_qubits):
-                    qml.RX(params[f'layer_{i}'][j, 0], wires=j)
-                    qml.RY(params[f'layer_{i}'][j, 1], wires=j)
-                    qml.RZ(params[f'layer_{i}'][j, 2], wires=j)
-                for j in range(num_qubits):
-                    qml.CNOT(wires=[j, (j + 1) % num_qubits])
-
-            mcm = [qml.measure(wire) for wire in first_pair]
-            for i in range(4, num_layers):
-                for j in range(num_qubits):
-                    qml.RX(params[f'layer_{i}'][j, 0], wires=j)
-                    qml.RY(params[f'layer_{i}'][j, 1], wires=j)
-                    qml.RZ(params[f'layer_{i}'][j, 2], wires=j)
-                for j in range(num_qubits):
-                    qml.CNOT(wires=[j, (j + 1) % num_qubits])
-
-            return mcm
-
         def _binary_quantum_function(params: Dict, state: torch.Tensor = None):
             mcasurements = []
             if state is not None:
@@ -128,8 +102,7 @@ class MCMCircuit(Module):
 
         if ansatz == 'ansatz_1':
             self.quantum_node = _quantum_function
-        elif ansatz == 'ansatz_2':
-            self.quantum_node = _quantum_function_2
+
         elif ansatz == '2-class':
             self.quantum_node = _binary_quantum_function
 
@@ -137,6 +110,9 @@ class MCMCircuit(Module):
 
         return self.quantum_node(params=self.params, state=state)
 
+    def set_parameters(self, params: Dict):
+        """Sets the params to a new value."""
+        self.params = params
 
 class MCMQuantumModel(Module):
     quantum_layer: MCMCircuit
@@ -170,16 +146,6 @@ class MCMQuantumModel(Module):
             self.quantum_node = _qnode
             self.ansatz = "Ansatz_1"
 
-        elif ansatz == 'ansatz_2':
-            @qml.qnode(device=self.dev, interface='torch')
-            def _qnode_2(state: torch.Tensor):
-                second_pair = [2, 3]
-                mcm = self.quantum_layer(state=state)
-                return qml.probs(op=mcm), qml.probs(wires=second_pair)
-
-            self.quantum_node = _qnode_2
-            self.ansatz = "Ansatz_2"
-
         elif ansatz == '2-class':
             @qml.qnode(device=self.dev, interface='torch')
             def _qnode_3(state: torch.Tensor):
@@ -190,11 +156,15 @@ class MCMQuantumModel(Module):
             self.ansatz = '2-class'
 
         else:
-            raise ValueError("Please indicate an ansatz between 'ansatz_1', 'ansatz_2', '2-class'")
+            raise ValueError("Please indicate an ansatz between 'ansatz_1', '2-class'")
 
     def ansatz(self):
 
         print(self.ansatz)
+    def set_parameters(self, params: Dict):
+        """Sets the params to a new value."""
+        self.quantum_layer.set_parameters(params)
+        self.params = params
 
     def forward(self, state: torch.Tensor):
         first_probs, second_probs = self.quantum_node(state=state)
