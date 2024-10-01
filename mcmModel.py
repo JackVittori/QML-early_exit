@@ -56,6 +56,7 @@ class MCMCircuit(Module):
                     qml.RZ(params[f'layer_{i}'][j, 2], wires=j)
                 for j in range(num_qubits):
                     qml.CNOT(wires=[j, (j + 1) % num_qubits])
+                    #qml.bit
 
             for w in first_pair:
                 mcms.append(qml.measure(wires=w))

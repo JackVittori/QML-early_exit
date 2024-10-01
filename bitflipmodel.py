@@ -12,7 +12,7 @@ from tqdm import tqdm
 import math
 
 
-class QuantumCircuit(Module):
+class flipQuantumCircuit(Module):
     """
     QuantumCircuit class defining quantum computation integrating Pennylane with Pytorch and containing quantum
     circuit logic.
@@ -22,7 +22,7 @@ class QuantumCircuit(Module):
     num_layers: int
     num_qubits: int
 
-    def __init__(self, num_qubits: int, num_layers: int, interface: str = 'torch'):
+    def __init__(self, num_qubits: int, num_layers: int, flipprob: float, interface: str = 'torch'):
         """
         Initialize the QuantumCircuit class.
 
@@ -33,11 +33,12 @@ class QuantumCircuit(Module):
         super().__init__()
         self.num_qubits = num_qubits
         self.num_layers = num_layers
-        self.dev = qml.device("default.qubit", wires=num_qubits)
+        self.dev = qml.device("default.mixed", wires=num_qubits)
         self.params = torch.nn.ParameterDict({
             f'layer_{i}': torch.nn.Parameter(torch.rand(num_qubits, 3, requires_grad=True))
             for i in range(num_layers)
         })
+        self.flipprob = flipprob
 
         @qml.qnode(self.dev, interface=interface)
         def _quantum_function(params: Dict, state: torch.Tensor = None,
@@ -68,8 +69,9 @@ class QuantumCircuit(Module):
                     qml.RZ(params[f'layer_{i}'][j, 2], wires=j)
                 for j in range(self.num_qubits):
                     qml.CNOT(wires=[j, (j + 1) % self.num_qubits])
+                    qml.BitFlip(p=self.flipprob, wires=(j + 1) % self.num_qubits)
 
-            return qml.state()
+            return qml.probs()
 
         self.quantum_node = _quantum_function
 
@@ -87,19 +89,19 @@ class QuantumCircuit(Module):
         """Sets the params to a new value."""
         self.params = params
 
-class FullQuantumModel(Module):
+class flipFullQuantumModel(Module):
     """
     FullQuantumModel builds upon QuantumCircuit class to create a trainable model and containing machine learning model
     logic.
     """
-    quantum_layer: QuantumCircuit
+    quantum_layer: flipQuantumCircuit
     params: ParameterDict
     num_qubits: int
     num_layers: int
     num_classes: int
     classification_qubits: int
 
-    def __init__(self, qubits: int, layers: int, num_classes: int):
+    def __init__(self, qubits: int, layers: int, num_classes: int, flipprob:float):
         """
         Initialize the FullQuantumModel class.
 
@@ -108,7 +110,7 @@ class FullQuantumModel(Module):
         :param num_classes: Number of classes in the dataset.
         """
         super().__init__()
-        self.quantum_layer = QuantumCircuit(qubits, layers)
+        self.quantum_layer = flipQuantumCircuit(qubits, layers, flipprob)
         self.params = self.quantum_layer.params
         self.num_qubits = self.quantum_layer.num_qubits
         self.num_layers = self.quantum_layer.num_layers
@@ -154,13 +156,13 @@ class FullQuantumModel(Module):
         state_vector = self.quantum_layer(state=state, num_layers_to_execute=num_layers_to_execute)
         total_states = 2 ** self.classification_qubits
 
-        probabilities = torch.zeros(state_vector.shape[0], self.num_classes, dtype=torch.float32)
+        probabilities = torch.zeros(len(state_vector), self.num_classes, dtype=torch.float32)
 
         for idx in range(self.num_classes):
             # Calculate the index range for each class
             start_idx = int(idx * (2 ** self.num_qubits / total_states))
             end_idx = int((idx + 1) * (2 ** self.num_qubits / total_states))
-            probabilities[:, idx] = torch.sum(torch.abs(state_vector[:, start_idx:end_idx]) ** 2, dim=1)
+            probabilities[:, idx] = torch.sum(torch.abs(state_vector[start_idx:end_idx]))
 
         return probabilities.type(torch.float32)
 
@@ -239,7 +241,8 @@ class FullQuantumModel(Module):
         if save:
             fig.savefig(path)
 
-    def fit(self, dataloader: DataLoader, sched_epochs: int, learning_rate:List[float], epochs: int,loss_function: Optional[torch.nn.modules.loss] = None,
+    def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int,
+            loss_function: Optional[torch.nn.modules.loss] = None,
             num_layers_to_execute: Optional[int] = None, show_plot: Optional[bool] = False) -> tuple:
         """
         Train the quantum circuit given a set of training data. The loss function is considered to be the Binary
@@ -273,15 +276,13 @@ class FullQuantumModel(Module):
 
         loss_history = list()
         accuracy = list()
-        optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate[0])
+        optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
         avg_time_per_epoch = 0
 
         for epoch in range(epochs):
             t_start = time()
             running_loss = 0
             accuracy_per_epoch = list()
-            if epoch == sched_epochs:
-                optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate[1])
 
             with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
 

@@ -212,7 +212,8 @@ class MCMQuantumModel(Module):
             fig.savefig(path)
 
 
-    def fit(self, dataloader: DataLoader, learning_rate: float, epochs: int, show_plot: Optional[bool] = False) -> tuple:
+    def fit(self, dataloader: DataLoader, sched_epochs: int, learning_rate:List[float],
+            epochs: int, show_plot: Optional[bool] = False) -> tuple:
 
         if self.num_exits == 1:
             mcm_loss_function = torch.nn.NLLLoss()
@@ -220,7 +221,7 @@ class MCMQuantumModel(Module):
             loss_history = list()
             mcm_accuracy = list()
             fm_accuracy = list()
-            optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
+            optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate[0])
             avg_time_per_epoch = 0
 
             for epoch in range(epochs):
@@ -228,6 +229,8 @@ class MCMQuantumModel(Module):
                 running_loss = 0
                 mcm_accuracy_per_epoch = list()
                 fm_accuracy_per_epoch = list()
+                if epoch == sched_epochs:
+                    optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate[1])
 
                 with tqdm(enumerate(dataloader), total=len(dataloader),
                           desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
@@ -337,7 +340,7 @@ class MCMQuantumModel(Module):
             early_1_accuracy = list()
             early_2_accuracy = list()
             fm_accuracy = list()
-            optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
+            optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate[0])
             avg_time_per_epoch = 0
 
             for epoch in range(epochs):
@@ -346,6 +349,8 @@ class MCMQuantumModel(Module):
                 early_1_accuracy_per_epoch = list()
                 early_2_accuracy_per_epoch = list()
                 fm_accuracy_per_epoch = list()
+                if epoch == sched_epochs:
+                    optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate[1])
 
                 with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
 
@@ -479,7 +484,7 @@ class MCMQuantumModel(Module):
             early_2_accuracy = list()
             early_3_accuracy = list()
             fm_accuracy = list()
-            optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate)
+            optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate[0])
             avg_time_per_epoch = 0
 
             for epoch in range(epochs):
@@ -489,6 +494,8 @@ class MCMQuantumModel(Module):
                 early_2_accuracy_per_epoch = list()
                 early_3_accuracy_per_epoch = list()
                 fm_accuracy_per_epoch = list()
+                if epoch == sched_epochs:
+                    optimizer = torch.optim.Adam(self.get_trainable_params(), lr=learning_rate[1])
 
                 with tqdm(enumerate(dataloader), total=len(dataloader), desc=f'Epoch {epoch + 1}/{epochs}') as tqdm_epoch:
 

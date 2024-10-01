@@ -33,15 +33,13 @@ class QuantumCircuit(Module):
         super().__init__()
         self.num_qubits = num_qubits
         self.num_layers = num_layers
-        self.dev = qml.device("default.qubit", wires=num_qubits)
         self.params = torch.nn.ParameterDict({
             f'layer_{i}': torch.nn.Parameter(torch.rand(num_qubits, 3, requires_grad=True))
             for i in range(num_layers)
         })
 
-        @qml.qnode(self.dev, interface=interface)
         def _quantum_function(params: Dict, state: torch.Tensor = None,
-                              num_layers_to_execute: Optional[int] = None) -> StateMP:
+                              num_layers_to_execute: Optional[int] = None):
             """
             Execute the quantum circuit with specified parameters and initial state up to the given number of layers.
 
@@ -54,6 +52,8 @@ class QuantumCircuit(Module):
             probability amplitude of the system being in one of the 256 = 2^8 states. Thus, data has to be normalized
             before being passed to the quantum circuit.
             """
+            first_pair = [0, 1]
+            measurements = []
             if state is not None:
                 # state vector initialization with input
                 qml.QubitStateVector(state, wires=range(self.num_qubits))
@@ -69,11 +69,11 @@ class QuantumCircuit(Module):
                 for j in range(self.num_qubits):
                     qml.CNOT(wires=[j, (j + 1) % self.num_qubits])
 
-            return qml.state()
+            return measurements
 
         self.quantum_node = _quantum_function
 
-    def forward(self, state: torch.Tensor = None, num_layers_to_execute: Optional[int] = None) -> StateMP:
+    def forward(self, state: torch.Tensor = None, num_layers_to_execute: Optional[int] = None):
         """
         Perform a forward pass on the quantum circuit.
 
@@ -114,15 +114,22 @@ class FullQuantumModel(Module):
         self.num_layers = self.quantum_layer.num_layers
         self.num_classes = num_classes
         self.classification_qubits = math.ceil(math.log2(num_classes))
+        self.dev = qml.device("default.qubit", wires=self.num_qubits)
         if self.classification_qubits > self.num_qubits:
             raise ValueError(f"Number of qubits must be at least equal to {self.classification_qubits}")
 
+        @qml.qnode(device=self.dev, interface='torch')
+        def _qnode(state: torch.Tensor):
+            results = self.quantum_layer(state=state)
+            return qml.probs(op=results)
+
+        self.quantum_node = _qnode
     def set_parameters(self, params: Dict):
         """Sets the params to a new value."""
         self.quantum_layer.set_parameters(params)
         self.params = params
 
-    def forward(self, state: torch.Tensor, num_layers_to_execute: Optional[int] = None):
+    def forward(self, state: torch.Tensor):
         """
         Calculate the probability distribution from quantum state measurements.
 
@@ -146,21 +153,7 @@ class FullQuantumModel(Module):
         |110>, |111>, |111>, but only the first 5 are considered.
 
         """
-        if self.num_classes == 2:
-            state_vector = self.quantum_layer(state=state, num_layers_to_execute=num_layers_to_execute)
-            probabilities = torch.sum(torch.abs(state_vector[:, :2 ** (self.quantum_layer.num_qubits - 1)]) ** 2, dim=1)
-            return probabilities.type(torch.float32)
-
-        state_vector = self.quantum_layer(state=state, num_layers_to_execute=num_layers_to_execute)
-        total_states = 2 ** self.classification_qubits
-
-        probabilities = torch.zeros(state_vector.shape[0], self.num_classes, dtype=torch.float32)
-
-        for idx in range(self.num_classes):
-            # Calculate the index range for each class
-            start_idx = int(idx * (2 ** self.num_qubits / total_states))
-            end_idx = int((idx + 1) * (2 ** self.num_qubits / total_states))
-            probabilities[:, idx] = torch.sum(torch.abs(state_vector[:, start_idx:end_idx]) ** 2, dim=1)
+        probs =
 
         return probabilities.type(torch.float32)
 
